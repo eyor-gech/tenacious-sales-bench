@@ -1,0 +1,16 @@
+timestamp,bucket,cost,purpose
+2026-04-24T17:45:51Z,week10_act1_dev_eval,0.005076,Act I — 30-task dev evaluation (gpt-4o-mini)
+2026-04-24T17:50:57Z,week10_act4_heldout_eval,0.004580,Act IV — 20-task held-out evaluation (gpt-4o-mini)
+2026-04-24T17:52:10Z,week10_act4_ablation,0.001374,Act IV — 3-mode ablation × 20 tasks (gpt-4o-mini)
+2026-04-24T18:01:33Z,week10_act2_enrichment,0.000229,Act II — NileLedger enrichment + outreach run (gpt-4o-mini)
+2026-04-24T18:05:44Z,week10_act3_probes,0.003450,Act III — 30 adversarial probe runs (gpt-4o-mini)
+2026-04-28T09:15:00Z,week11_task_generation_programmatic,0.000000,Programmatic task generation (local templates; no LLM)
+2026-04-28T09:45:22Z,week11_task_generation_multi_llm,0.006900,Multi-LLM synthesis — 69 draft tasks × 2 passes (gpt-4o-mini)
+2026-04-28T10:30:11Z,week11_judge_filter,0.001380,Judge filter — 69 tasks × quality gate (gpt-4o-mini)
+2026-04-28T11:00:00Z,week11_dedup_embedding,0.000000,Deduplication — local sentence-transformers; no LLM
+2026-04-28T11:30:45Z,week11_contamination_check_embedding,0.000000,Contamination check — local sentence-transformers; no LLM
+2026-04-28T13:00:00Z,week11_ira_annotation_rater_a,0.000000,Inter-rater study — Rater A (human; no LLM cost)
+2026-04-28T13:45:00Z,week11_ira_annotation_rater_b,0.000000,Inter-rater study — Rater B (human; no LLM cost)
+2026-04-28T14:30:22Z,week11_scorer_test_run,0.000230,Scorer validation — 10 tasks × tone judge (gpt-4o-mini)
+2026-04-29T09:00:00Z,week11_readme_generation,0.000000,Documentation — no LLM cost (human-authored)
+2026-04-29T10:00:00Z,week11_audit_memo,0.000000,Audit memo — no LLM cost (human-authored)
