@@ -1,0 +1,72 @@
+{
+  "task_id": "TB-EX-001",
+  "metadata": {
+    "dimension": "signal_grounded_personalization",
+    "created_by": "hand_authored",
+    "created_at": "2026-04-29T00:00:00Z",
+    "contamination_checked": true,
+    "scoring_type": "rubric_5pt",
+    "probe_ref": "P06"
+  },
+  "source_mode": "hand_authored_adversarial",
+  "difficulty": "medium",
+  "input": {
+    "company_context": {
+      "company_id": "cmp_ex001",
+      "company_name": "NovaPay",
+      "industry": "fintech",
+      "funding_stage": "Series B",
+      "employee_count": 210,
+      "ai_maturity_score": 2.5
+    },
+    "signal_brief": {
+      "icp_confidence": 0.78,
+      "icp_segment": "segment_3",
+      "hiring_velocity_label": "moderate",
+      "open_roles_today": 4,
+      "open_roles_60d_ago": 1,
+      "honesty_flags": [],
+      "competitor_gap_summary": "Two fintech peers hired ML Engineers in Q1 2026; NovaPay has 0 equivalent roles.",
+      "signal_date": "2026-03-10"
+    },
+    "channel": "email",
+    "thread_history": [],
+    "task_instruction": "Compose a grounded outbound email to NovaPay referencing the hiring signal and competitor gap. Apply confidence-aware phrasing. Include a CTA."
+  },
+  "candidate_output": {
+    "outreach_text": "Hi [contact], based on NovaPay's recent hiring activity — 4 open roles today versus 1 sixty days ago — and the competitive gap in the fintech space, I wanted to reach out about AI team augmentation. Two peers hired ML Engineers in Q1 2026 while NovaPay has 0 equivalent roles. Indicators suggest this may be the right time to explore options. Would a 20-minute call make sense this week? Book here: [calendar link]",
+    "channel": "email",
+    "intent_classification": null,
+    "confidence_prefix": "based on NovaPay's recent hiring activity",
+    "cta_present": true,
+    "citations": []
+  },
+  "ground_truth": {
+    "ideal_output": "Hi [contact], based on NovaPay's recent hiring activity — 4 open roles today versus 1 sixty days ago — and the competitive gap in the fintech space, I wanted to reach out about AI team augmentation. Two fintech peers hired ML Engineers in Q1 2026 while NovaPay has 0 equivalent roles. Would a 20-minute call make sense? [calendar link]",
+    "banned_phrases": ["guarantee", "we promise", "clearly lacks"],
+    "required_signals": ["fintech", "hiring", "Series B"],
+    "required_cta_pattern": "(calendar|schedule|call|book)",
+    "correct_intent": null,
+    "confidence_prefix_required": true,
+    "abstain_required": false
+  },
+  "scoring_rubric": {
+    "dimensions": [
+      {"name": "banned_phrase_violations", "weight": 0.30, "max_score": 1.0, "description": "No banned phrases present"},
+      {"name": "grounding_signal_presence", "weight": 0.25, "max_score": 1.0, "description": "Required signals present in output"},
+      {"name": "cta_presence",             "weight": 0.20, "max_score": 1.0, "description": "CTA pattern matched"},
+      {"name": "tone_markers",             "weight": 0.15, "max_score": 1.0, "description": "Professional, non-condescending tone"},
+      {"name": "confidence_calibration",   "weight": 0.10, "max_score": 1.0, "description": "Hedging prefix present as required"}
+    ],
+    "pass_threshold": 0.70
+  },
+  "evaluator_config": {
+    "scorer_version": "0.1.0",
+    "icp_threshold": 0.62,
+    "signal_confidence_mode": "confidence_aware",
+    "judge_model": "openai/gpt-4o-mini",
+    "banned_phrase_check": "regex",
+    "grounding_check": "keyword",
+    "max_latency_ms": 15000
+  }
+}

@@ -10,6 +10,18 @@ Usage:
     python scoring_evaluator.py --task <path/to/tasks.jsonl> --task-id TB-DEV-001 \
         --candidate '{"outreach_text": "...", "cta_present": true}'
     python scoring_evaluator.py --batch-dir tenacious_bench_v0.1/dev --out results/dev_scores.jsonl
+
+End-to-end example walkthrough (no API key required):
+    python examples/run_examples.py
+
+    This runs score_task() against three hand-authored tasks in examples/:
+      ex1_signal_grounding_pass.json  — well-formed email, expects PASS  (~0.87)
+      ex2_icp_abstain_correct.json    — correct abstain at icp=0.45,     PASS  (~1.00)
+      ex3_banned_phrase_fail.json     — guarantee + condescending text,  FAIL  (~0.31)
+
+    Each JSON file contains a complete task dict including a filled candidate_output.
+    Calling score_task(task) returns a TaskScore with total_score, passed, and a
+    DimensionScore for each rubric dimension (raw, weight, weighted, reason).
 """
 
 from __future__ import annotations
