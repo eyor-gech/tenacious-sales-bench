@@ -1,0 +1,29 @@
+data/tenacious_sales_data/
+.claude/
+
+# Build artifacts
+tenacious_bench_v0.1/raw/
+tenacious_bench_v0.1/filtered/
+tenacious_bench_v0.1/deduped.jsonl
+*.pyc
+# Python
+__pycache__/
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
