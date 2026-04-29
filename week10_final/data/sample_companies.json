@@ -1,0 +1,173 @@
+[
+  {
+    "company_id": "cmp_001",
+    "name": "NileLedger",
+    "domain": "nileledger.com",
+    "industry": "fintech",
+    "employee_count": 420,
+    "founded_year": 2018,
+    "latest_funding_date": "2025-11-18T00:00:00",
+    "latest_funding_round": "Series B",
+    "leadership_changes": ["New CTO joined in Q1 2026"],
+    "open_roles": ["Senior AI Engineer", "Data Engineer", "Product Manager"],
+    "layoffs_reported": false,
+    "tech_stack": ["AWS", "Snowflake", "OpenAI"],
+    "exec_public_mentions": ["CEO discussed practical AI deployment in earnings call"],
+    "github_activity_score": 0.71
+  },
+  {
+    "company_id": "cmp_002",
+    "name": "ClinixFlow",
+    "domain": "clinixflow.io",
+    "industry": "healthtech",
+    "employee_count": 1200,
+    "founded_year": 2012,
+    "latest_funding_date": "2024-09-01T00:00:00",
+    "latest_funding_round": "Growth",
+    "leadership_changes": [],
+    "open_roles": ["MLOps Engineer", "Sales Ops Analyst"],
+    "layoffs_reported": true,
+    "tech_stack": ["Azure", "Databricks"],
+    "exec_public_mentions": ["COO said AI assist workflows are in pilot"],
+    "github_activity_score": 0.45
+  },
+  {
+    "company_id": "cmp_003",
+    "name": "AtlasProcure",
+    "domain": "atlasprocure.com",
+    "industry": "supply_chain",
+    "employee_count": 260,
+    "founded_year": 2020,
+    "latest_funding_date": null,
+    "latest_funding_round": null,
+    "leadership_changes": ["VP Revenue hired"],
+    "open_roles": ["Backend Engineer", "RevOps Manager"],
+    "layoffs_reported": false,
+    "tech_stack": ["GCP", "PostgreSQL"],
+    "exec_public_mentions": ["Leadership discussing process automation"],
+    "github_activity_score": 0.33
+  },
+  {
+    "company_id": "cmp_004",
+    "name": "PayFlowAI",
+    "domain": "payflowai.com",
+    "industry": "fintech",
+    "employee_count": 850,
+    "founded_year": 2017,
+    "latest_funding_date": "2025-08-01T00:00:00",
+    "latest_funding_round": "Series C",
+    "leadership_changes": ["Chief AI Officer hired from Google DeepMind"],
+    "open_roles": [
+      "ML Engineer",
+      "AI Research Scientist",
+      "MLOps Platform Engineer",
+      "Applied AI Lead",
+      "AI Data Analyst"
+    ],
+    "layoffs_reported": false,
+    "tech_stack": ["OpenAI", "AWS SageMaker", "Kubernetes"],
+    "exec_public_mentions": [
+      "CEO launched AI-first payment intelligence strategy",
+      "CTO published AI infrastructure roadmap",
+      "COO emphasized AI in operations at FinTech Summit",
+      "CFO approved $12M AI investment program in Q4"
+    ],
+    "github_activity_score": 0.95
+  },
+  {
+    "company_id": "cmp_005",
+    "name": "DataBridgeAI",
+    "domain": "databridgeai.io",
+    "industry": "fintech",
+    "employee_count": 320,
+    "founded_year": 2019,
+    "latest_funding_date": "2025-03-15T00:00:00",
+    "latest_funding_round": "Series B",
+    "leadership_changes": ["VP of AI joined from Stripe"],
+    "open_roles": [
+      "AI Engineer",
+      "AI Research Scientist",
+      "MLOps Platform Engineer",
+      "Revenue Ops Manager"
+    ],
+    "layoffs_reported": false,
+    "tech_stack": ["Anthropic", "GCP", "BigQuery"],
+    "exec_public_mentions": [
+      "CTO outlined AI-driven reconciliation pipeline",
+      "CEO highlighted AI as core product differentiator"
+    ],
+    "github_activity_score": 0.82
+  },
+  {
+    "company_id": "cmp_006",
+    "name": "QuantumPay",
+    "domain": "quantumpay.com",
+    "industry": "fintech",
+    "employee_count": 540,
+    "founded_year": 2016,
+    "latest_funding_date": "2024-11-20T00:00:00",
+    "latest_funding_round": "Series B",
+    "leadership_changes": [],
+    "open_roles": [
+      "AI Platform Engineer",
+      "AI Research Scientist",
+      "MLOps Platform Engineer",
+      "AI Product Lead",
+      "Finance Manager"
+    ],
+    "layoffs_reported": false,
+    "tech_stack": ["Vertex AI", "Azure", "Terraform"],
+    "exec_public_mentions": [
+      "VP Engineering presented AI fraud detection at Money 20/20"
+    ],
+    "github_activity_score": 0.78
+  },
+  {
+    "company_id": "cmp_007",
+    "name": "FintechBase",
+    "domain": "fintechbase.com",
+    "industry": "fintech",
+    "employee_count": 180,
+    "founded_year": 2021,
+    "latest_funding_date": "2024-06-01T00:00:00",
+    "latest_funding_round": "Series A",
+    "leadership_changes": [],
+    "open_roles": ["ML Analytics Engineer", "Backend Engineer", "Customer Success"],
+    "layoffs_reported": false,
+    "tech_stack": ["AWS", "PostgreSQL", "dbt"],
+    "exec_public_mentions": ["CTO exploring AI-assisted underwriting"],
+    "github_activity_score": 0.60
+  },
+  {
+    "company_id": "cmp_008",
+    "name": "MoneyTree",
+    "domain": "moneytree.finance",
+    "industry": "fintech",
+    "employee_count": 95,
+    "founded_year": 2022,
+    "latest_funding_date": null,
+    "latest_funding_round": null,
+    "leadership_changes": [],
+    "open_roles": ["AI Business Analyst", "Sales Manager"],
+    "layoffs_reported": false,
+    "tech_stack": ["Heroku", "Stripe"],
+    "exec_public_mentions": ["Exploring AI-powered analytics for SME lending"],
+    "github_activity_score": 0.50
+  },
+  {
+    "company_id": "cmp_009",
+    "name": "LedgerNode",
+    "domain": "ledgernode.io",
+    "industry": "fintech",
+    "employee_count": 45,
+    "founded_year": 2023,
+    "latest_funding_date": null,
+    "latest_funding_round": null,
+    "leadership_changes": [],
+    "open_roles": ["Backend Engineer", "Finance Operations"],
+    "layoffs_reported": false,
+    "tech_stack": ["GCP", "PostgreSQL"],
+    "exec_public_mentions": ["Focused on core ledger reliability"],
+    "github_activity_score": 0.20
+  }
+]

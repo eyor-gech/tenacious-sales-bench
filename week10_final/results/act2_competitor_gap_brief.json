@@ -1,0 +1,216 @@
+{
+  "prospect_domain": "nileledger.com",
+  "prospect_sector": "fintech",
+  "generated_at": "2026-04-25T05:56:08.313948+00:00",
+  "prospect_ai_maturity_score": 1,
+  "sector_top_quartile_benchmark": 2.5,
+  "competitors_analyzed": [
+    {
+      "name": "PayFlowAI",
+      "domain": "payflowai.com",
+      "ai_maturity_score": 3,
+      "ai_maturity_justification": [
+        "AI roles=5 (w=0.40)",
+        "exec AI mentions=4 (w=0.25)",
+        "tech signal=1 (w=0.12)",
+        "github signal=0.95 (w=0.03)",
+        "leadership AI=1 (w=0.12)",
+        "industry AI baseline=1 (w=0.08)",
+        "weighted=3.35, score=3, confidence=1.0"
+      ],
+      "headcount_band": "500_to_2000",
+      "top_quartile": true,
+      "sources_checked": [
+        "https://payflowai.com/careers"
+      ]
+    },
+    {
+      "name": "QuantumPay",
+      "domain": "quantumpay.com",
+      "ai_maturity_score": 2,
+      "ai_maturity_justification": [
+        "AI roles=4 (w=0.40)",
+        "exec AI mentions=1 (w=0.25)",
+        "tech signal=1 (w=0.12)",
+        "github signal=0.78 (w=0.03)",
+        "leadership AI=0 (w=0.12)",
+        "industry AI baseline=1 (w=0.08)",
+        "weighted=2.07, score=2, confidence=0.83"
+      ],
+      "headcount_band": "500_to_2000",
+      "top_quartile": true,
+      "sources_checked": [
+        "https://quantumpay.com/careers"
+      ]
+    },
+    {
+      "name": "DataBridgeAI",
+      "domain": "databridgeai.io",
+      "ai_maturity_score": 2,
+      "ai_maturity_justification": [
+        "AI roles=3 (w=0.40)",
+        "exec AI mentions=2 (w=0.25)",
+        "tech signal=1 (w=0.12)",
+        "github signal=0.82 (w=0.03)",
+        "leadership AI=1 (w=0.12)",
+        "industry AI baseline=1 (w=0.08)",
+        "weighted=2.04, score=2, confidence=1.0"
+      ],
+      "headcount_band": "200_to_500",
+      "top_quartile": false,
+      "sources_checked": [
+        "https://databridgeai.io/careers"
+      ]
+    },
+    {
+      "name": "FintechBase",
+      "domain": "fintechbase.com",
+      "ai_maturity_score": 1,
+      "ai_maturity_justification": [
+        "AI roles=1 (w=0.40)",
+        "exec AI mentions=1 (w=0.25)",
+        "tech signal=0 (w=0.12)",
+        "github signal=0.60 (w=0.03)",
+        "leadership AI=0 (w=0.12)",
+        "industry AI baseline=1 (w=0.08)",
+        "weighted=0.75, score=1, confidence=0.67"
+      ],
+      "headcount_band": "80_to_200",
+      "top_quartile": false,
+      "sources_checked": [
+        "https://fintechbase.com/careers"
+      ]
+    },
+    {
+      "name": "MoneyTree",
+      "domain": "moneytree.finance",
+      "ai_maturity_score": 1,
+      "ai_maturity_justification": [
+        "AI roles=1 (w=0.40)",
+        "exec AI mentions=1 (w=0.25)",
+        "tech signal=0 (w=0.12)",
+        "github signal=0.50 (w=0.03)",
+        "leadership AI=0 (w=0.12)",
+        "industry AI baseline=1 (w=0.08)",
+        "weighted=0.74, score=1, confidence=0.67"
+      ],
+      "headcount_band": "80_to_200",
+      "top_quartile": false,
+      "sources_checked": [
+        "https://moneytree.finance/careers"
+      ]
+    },
+    {
+      "name": "LedgerNode",
+      "domain": "ledgernode.io",
+      "ai_maturity_score": 0,
+      "ai_maturity_justification": [
+        "AI roles=0 (w=0.40)",
+        "exec AI mentions=0 (w=0.25)",
+        "tech signal=0 (w=0.12)",
+        "github signal=0.20 (w=0.03)",
+        "leadership AI=0 (w=0.12)",
+        "industry AI baseline=1 (w=0.08)",
+        "weighted=0.09, score=0, confidence=0.33"
+      ],
+      "headcount_band": "15_to_80",
+      "top_quartile": false,
+      "sources_checked": [
+        "https://ledgernode.io/careers"
+      ]
+    }
+  ],
+  "gap_findings": [
+    {
+      "practice": "Top-quartile peers actively hire for 'ai research scientist' roles, signalling a dedicated AI/ML function build-out.",
+      "peer_evidence": [
+        {
+          "competitor_name": "PayFlowAI",
+          "evidence": "Active open role for 'ai research scientist' found in public job postings (source: data/jobs_snapshot.json snapshot, 60-day window).",
+          "source_url": "https://payflowai.com/careers"
+        },
+        {
+          "competitor_name": "QuantumPay",
+          "evidence": "Active open role for 'ai research scientist' found in public job postings (source: data/jobs_snapshot.json snapshot, 60-day window).",
+          "source_url": "https://quantumpay.com/careers"
+        }
+      ],
+      "prospect_state": "No public job posting for 'ai research scientist' detected in the current jobs snapshot. No public signal of this practice from the prospect.",
+      "confidence": "medium",
+      "segment_relevance": [
+        "segment_4_specialized_capability"
+      ]
+    },
+    {
+      "practice": "Top-quartile peers actively hire for 'mlops platform engineer' roles, signalling a dedicated AI/ML function build-out.",
+      "peer_evidence": [
+        {
+          "competitor_name": "PayFlowAI",
+          "evidence": "Active open role for 'mlops platform engineer' found in public job postings (source: data/jobs_snapshot.json snapshot, 60-day window).",
+          "source_url": "https://payflowai.com/careers"
+        },
+        {
+          "competitor_name": "QuantumPay",
+          "evidence": "Active open role for 'mlops platform engineer' found in public job postings (source: data/jobs_snapshot.json snapshot, 60-day window).",
+          "source_url": "https://quantumpay.com/careers"
+        }
+      ],
+      "prospect_state": "No public job posting for 'mlops platform engineer' detected in the current jobs snapshot. No public signal of this practice from the prospect.",
+      "confidence": "medium",
+      "segment_relevance": [
+        "segment_4_specialized_capability"
+      ]
+    }
+  ],
+  "top_quartile_selection_criteria": "A peer is designated top-quartile when BOTH conditions hold: (1) score_ai_maturity() >= 2/3, AND (2) maturity_proxy (github_activity_score + role_count\u00d70.05) >= 75th percentile of the analyzed peer pool.",
+  "suggested_pitch_shift": "Shift from generic AI transformation pitch to specific capability gap: highlight roles top-quartile peers are actively staffing that the prospect has not yet opened.",
+  "gap_quality_self_check": {
+    "all_peer_evidence_has_source_url": true,
+    "at_least_one_gap_high_confidence": false,
+    "prospect_silent_but_sophisticated_risk": false
+  },
+  "top_peers": [
+    "PayFlowAI",
+    "QuantumPay"
+  ],
+  "relative_maturity_ranking": [
+    {
+      "company": "PayFlowAI",
+      "maturity_proxy": 1.2
+    },
+    {
+      "company": "QuantumPay",
+      "maturity_proxy": 1.03
+    },
+    {
+      "company": "DataBridgeAI",
+      "maturity_proxy": 1.02
+    },
+    {
+      "company": "FintechBase",
+      "maturity_proxy": 0.75
+    },
+    {
+      "company": "MoneyTree",
+      "maturity_proxy": 0.6
+    }
+  ],
+  "missing_capabilities": [
+    "ai data analyst",
+    "ai platform engineer",
+    "ai product lead",
+    "ai research scientist",
+    "applied ai lead",
+    "finance manager",
+    "ml engineer",
+    "mlops platform engineer"
+  ],
+  "distribution_position": {
+    "percentile": 62.5,
+    "maturity_proxy_score": 0.86,
+    "universe_size": 8,
+    "note": "NileLedger ranks at the 62.5th percentile across 8 companies by maturity proxy score."
+  },
+  "evidence_note": "Capability gaps derived from public job post titles via structured data snapshot (data/jobs_snapshot.json). Same scoring function (github_activity_score + role count) as AI maturity pipeline.",
+  "tone_note": "Use neutral language focused on opportunity, not deficiency."
+}

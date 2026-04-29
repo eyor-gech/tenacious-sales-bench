@@ -1,0 +1,65 @@
+{
+  "thread_id": "thread-cmp_001",
+  "timestamp": "2026-04-24T17:47:06.496631+00:00",
+  "prospect_id": "cmp_001",
+  "email_send": {
+    "status": "queued",
+    "to": "partnerships@nileledger.com",
+    "subject": "NileLedger growth brief",
+    "body": "Based on moderate-confidence indicators, Hi NileLedger team, we prepared an outreach brief from hiring and competitor signals and can walk through practical next steps this week.",
+    "sandbox": true,
+    "mock_mode": false
+  },
+  "email_reply": {
+    "accepted": true,
+    "event": "reply",
+    "intent": "unknown"
+  },
+  "qualification": {
+    "intent": "unknown",
+    "sentiment": "positive",
+    "confidence": 0.6,
+    "structured_response": {
+      "raw": "Thanks, interested. Can we book Thursday 2pm?"
+    }
+  },
+  "sms": {
+    "accepted": true,
+    "provider_response": {
+      "status": "queued",
+      "to": "+254700000000",
+      "message": "Happy to share a booking link for Thursday options.",
+      "sandbox": true,
+      "mock_mode": false
+    },
+    "llm_eval": {
+      "allow_sms": true,
+      "confidence": 0.55,
+      "reason": "fallback heuristic"
+    }
+  },
+  "booking": {
+    "booking": {
+      "status": "confirmed",
+      "attendee_email": "partnerships@nileledger.com",
+      "slot": "2026-05-01T11:00:00Z",
+      "sandbox": true,
+      "mock_mode": false
+    },
+    "hubspot_update": {
+      "prospect_id": "cmp_001",
+      "booking_summary": "[FALLBACK] rate-limited/unavailable",
+      "booking_payload": {
+        "status": "confirmed",
+        "attendee_email": "partnerships@nileledger.com",
+        "slot": "2026-05-01T11:00:00Z",
+        "sandbox": true,
+        "mock_mode": false
+      },
+      "sandbox": true,
+      "mock_mode": false
+    },
+    "prospect_id": "cmp_001",
+    "updated_at": "2026-04-24T17:47:06.496631+00:00"
+  }
+}

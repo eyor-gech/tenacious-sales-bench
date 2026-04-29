@@ -1,0 +1,14 @@
+app_name: Conversion Engine
+submission_mode: interim
+icp_threshold: 0.62
+outreach_tone: consultative
+hubspot_sandbox: true
+calcom_sandbox: true
+africastalking_sandbox: true
+resend_sandbox: true
+langfuse_enabled: true
+langfuse_project: conversion-engine
+mock_mode: true
+openrouter_api_key: ""
+max_llm_concurrency: 2
+max_tool_concurrency: 4

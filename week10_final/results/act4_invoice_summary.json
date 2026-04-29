@@ -1,0 +1,6 @@
+{
+  "model": "openai/gpt-4o-mini",
+  "estimated_total_cost_usd": 0.004575,
+  "estimated_cost_per_task_usd": 0.000229,
+  "assumption": "Derived from synthetic token accounting and eval/pricing.py rates."
+}

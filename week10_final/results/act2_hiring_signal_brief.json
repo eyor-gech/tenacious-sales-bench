@@ -1,0 +1,160 @@
+{
+  "prospect_domain": "nileledger.com",
+  "prospect_name": "NileLedger",
+  "generated_at": "2026-04-25T07:07:13.661483+00:00",
+  "primary_segment_match": "abstain",
+  "segment_confidence": 0.5,
+  "ai_maturity": {
+    "score": 1,
+    "confidence": 0.7,
+    "justifications": [
+      {
+        "signal": "ai_adjacent_open_roles",
+        "status": "1 AI/ML-adjacent open role(s) detected in current snapshot",
+        "weight": "high",
+        "confidence": "medium",
+        "source_url": "https://nileledger.com/careers"
+      },
+      {
+        "signal": "executive_commentary",
+        "status": "1 exec public AI mention(s): CEO discussed practical AI deployment in earnings call",
+        "weight": "medium",
+        "confidence": "medium"
+      },
+      {
+        "signal": "named_ai_ml_leadership",
+        "status": "New CTO joined in Q1 2026",
+        "weight": "high",
+        "confidence": "high"
+      },
+      {
+        "signal": "modern_data_ml_stack",
+        "status": "Tech stack: AWS, Snowflake, OpenAI",
+        "weight": "medium",
+        "confidence": "medium"
+      },
+      {
+        "signal": "github_org_activity",
+        "status": "GitHub activity score: 0.71",
+        "weight": "low",
+        "confidence": "medium"
+      }
+    ]
+  },
+  "hiring_velocity": {
+    "open_roles_today": 3,
+    "open_roles_60_days_ago": 2,
+    "velocity_label": "increased_modestly",
+    "signal_confidence": 0.75,
+    "sources": [
+      "builtin"
+    ]
+  },
+  "buying_window_signals": {
+    "funding_event": {
+      "detected": true,
+      "stage": "series_b",
+      "closed_at": "2025-11-18T00:00:00"
+    },
+    "layoff_event": {
+      "detected": false
+    },
+    "leadership_change": {
+      "detected": true,
+      "role": "cto"
+    }
+  },
+  "tech_stack": [
+    "AWS",
+    "Snowflake",
+    "OpenAI"
+  ],
+  "data_sources_checked": [
+    {
+      "source": "crunchbase",
+      "status": "success",
+      "fetched_at": "2026-04-25T07:07:13.661483+00:00"
+    },
+    {
+      "source": "jobs_snapshot",
+      "status": "success",
+      "fetched_at": "2026-04-25T07:07:13.661483+00:00"
+    },
+    {
+      "source": "layoffs.fyi",
+      "status": "success",
+      "fetched_at": "2026-04-25T07:07:13.661483+00:00"
+    },
+    {
+      "source": "news/linkedin",
+      "status": "success",
+      "fetched_at": "2026-04-25T07:07:13.661483+00:00"
+    }
+  ],
+  "honesty_flags": [],
+  "signals": {
+    "crunchbase": {
+      "payload": {
+        "name": "NileLedger",
+        "industry": "fintech",
+        "employee_count": 420,
+        "summary": "normalized_fallback"
+      },
+      "confidence": 0.7,
+      "confidenceScore": 0.7,
+      "source": "crunchbase",
+      "collected_at": "2026-04-25T07:07:13.661483+00:00"
+    },
+    "jobPosts": {
+      "payload": {
+        "role_categories": {
+          "ai_ml": 1,
+          "other": 2
+        },
+        "hiring_intent": "expansion",
+        "confidence": 0.62
+      },
+      "confidence": 0.62,
+      "confidenceScore": 0.62,
+      "source": "jobs_snapshot / careers_page",
+      "collected_at": "2026-04-25T07:07:13.661483+00:00"
+    },
+    "layoffs": {
+      "payload": {
+        "severity": "low",
+        "impact_reasoning": "fallback classification from structured layoffs flag",
+        "confidence": 0.61
+      },
+      "confidence": 0.61,
+      "confidenceScore": 0.61,
+      "source": "layoffs.fyi",
+      "collected_at": "2026-04-25T07:07:13.661483+00:00"
+    },
+    "leadershipChanges": {
+      "payload": {
+        "structured": {
+          "detected": true,
+          "changes_count": 1,
+          "changes_raw": [
+            "New CTO joined in Q1 2026"
+          ],
+          "ai_leadership_flag": true,
+          "inferred_role": "cto",
+          "exec_mentions_count": 1,
+          "confidence": 0.85,
+          "source": "news/linkedin",
+          "collected_at": "2026-04-25T07:07:13.661483+00:00"
+        },
+        "llm_confirmation": {
+          "confirmed": true,
+          "rationale": "fallback based on explicit leadership change list",
+          "confidence": 0.66
+        }
+      },
+      "confidence": 0.66,
+      "confidenceScore": 0.66,
+      "source": "news/linkedin",
+      "collected_at": "2026-04-25T07:07:13.661483+00:00"
+    }
+  }
+}

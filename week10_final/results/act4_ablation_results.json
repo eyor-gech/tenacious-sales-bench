@@ -1,0 +1,5 @@
+{
+  "confidence_aware": 0.76,
+  "binary_threshold": 0.7,
+  "no_confidence": 0.66
+}

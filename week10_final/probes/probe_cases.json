@@ -1,0 +1,452 @@
+[
+  {
+    "id": "P01",
+    "category": "ICP",
+    "rubric_category": "ICP Classification",
+    "scenario": "NileLedger (fintech, Series B, 420 employees, cmp_001) scores ICP confidence=0.58 — below the 0.62 abstention threshold — but the classifier assigns segment_2 (mid-market restructure) because the funding recency signal fires on the $15M Series B mention without checking the aggregate confidence gate.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Thanks for reaching out — NileLedger is growing fast after our Series B and we are always open to talking with vendors who understand fintech scale."
+    },
+    "expected_failure": "segment_2 assigned despite ICP confidence=0.58 < 0.62 abstention threshold; system should emit abstain and send a generic exploratory email instead of a segment-specific pitch",
+    "observed_behavior": "unknown",
+    "business_cost": "Segment 2 outreach on a below-threshold lead wastes 1 of 23 qualified weekly slots and risks a domain block worth ~$1,200 in expected Segment 2 pipeline ($8,000 ACV × 15% close rate)",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P02",
+    "category": "ICP",
+    "rubric_category": "ICP Classification",
+    "scenario": "AtlasProcure (supply_chain, ICP confidence=0.51) receives a Segment 4 specialized-capability pitch for MLOps team augmentation because the icp_threshold environment variable is set to 0.50 in a misconfigured staging run, bypassing the production 0.62 floor.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Hi — we are a supply chain software company and we received your email about AI engineering. We are not sure this is a fit for us right now."
+    },
+    "expected_failure": "Outreach fires on a confidence=0.51 lead that should abstain; honesty_flag weak_ai_maturity_signal is present in the hiring_signal_brief but the outreach pipeline does not check it before composing",
+    "observed_behavior": "unknown",
+    "business_cost": "One low-confidence lead burning an outreach slot is low-cost ($0.001), but if this bug fires across 20 leads/week the pipeline degrades to noise — reply rates fall below the 12% pilot success criterion and trigger an early kill-switch",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P03",
+    "category": "Tone",
+    "rubric_category": "Tone & Language Policy",
+    "scenario": "The outreach generator produces 'We guarantee NileLedger's AI team will be operational within 60 days' for a Segment 1 fintech prospect with ICP confidence=0.71. The tone guardrail pattern-matches on 'guarantee' as a standalone word but misses it in the predicate 'will be operational' construction, allowing the overclaim to reach Resend for delivery.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Thanks — we guarantee NileLedger's AI team will be operational within 60 days. Our track record with fintech Series B companies speaks for itself."
+    },
+    "expected_failure": "Overclaim 'guarantee' not blocked by apply_tone_guardrail(); the Resend email is sent with an unsubstantiated delivery commitment that Tenacious cannot fulfill",
+    "observed_behavior": "unknown",
+    "business_cost": "Legal review flag on a 'guarantee' claim to a fintech VP; if escalated to counsel, estimated $5,000 in legal overhead per incident and permanent domain opt-out blocking future $8,000 ACV opportunities with that contact",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P04",
+    "category": "Tone",
+    "rubric_category": "Tone & Language Policy",
+    "scenario": "After the competitor gap brief identifies that NileLedger has no MLOps Platform Engineer while PayFlowAI and QuantumPay do, the outreach generator produces: 'Your team clearly lacks the operational AI infrastructure that your fintech peers have already built.' The condescending framing is not caught because the tone guardrail only checks for overclaim keywords, not for belittling constructs.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Your team clearly lacks the operational AI infrastructure that PayFlowAI and QuantumPay have already built — we can help close that gap."
+    },
+    "expected_failure": "Condescending framing ('clearly lacks') reaches the NileLedger CTO; tone drift not caught because validate_outreach() uses a lexical blocklist that covers assertions but not comparative belittling",
+    "observed_behavior": "unknown",
+    "business_cost": "Thread stall: the CTO forwards the email to the team as an example of 'vendor arrogance'; the NileLedger domain is blocklisted, eliminating a potential $8,000 ACV deal and poisoning referral network within the fintech community",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P05",
+    "category": "Signal Reliability",
+    "rubric_category": "Signal Reliability & Grounding",
+    "scenario": "ClinixFlow (healthtech, cmp_002) has a layoff_event in the hiring_signal_brief dated 2024-09-01 — 14 months before the April 2026 outreach date. The 60-day velocity gate in the competitor gap pipeline does not validate the buying_window_signals.layoff_event.date against the current timestamp, so the system treats ClinixFlow as 'in active transformation' and sends a restructuring-opportunity pitch.",
+    "input_payload": {
+      "channel": "email",
+      "message": "We noticed ClinixFlow has been restructuring recently — many healthtech companies in your position are investing in AI team augmentation to accelerate the recovery."
+    },
+    "expected_failure": "Stale layoff signal (14 months old) used as a live buying-window indicator; the honesty_flag mechanism does not check temporal staleness, only signal absence",
+    "observed_behavior": "unknown",
+    "business_cost": "Prospect replies defensively ('we completed our restructuring 18 months ago'); the pitch framing is factually wrong, eroding Tenacious's research credibility and costing the thread — estimated $1,200 in pipeline value for a Segment 2 ClinixFlow deal",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P06",
+    "category": "Signal Reliability",
+    "rubric_category": "Signal Reliability & Grounding",
+    "scenario": "NileLedger's jobs_snapshot entry (cmp_001: 2, representing 60-day-ago count) is overwritten with 0 during a failed snapshot refresh. The 60-day velocity computation returns open_roles_60_days_ago=0 and velocity_label='insufficient_signal', triggering the honesty_flag weak_hiring_velocity_signal. However, the outreach composer ignores the flag and includes 'We see strong hiring momentum at NileLedger' based on the current open_roles count alone.",
+    "input_payload": {
+      "channel": "email",
+      "message": "We see strong hiring momentum at NileLedger — your 3 open AI and data roles signal a team that is scaling fast."
+    },
+    "expected_failure": "Hiring-velocity claim made despite weak_hiring_velocity_signal honesty_flag in the brief; the outreach composer does not enforce flag-conditional phrasing softening",
+    "observed_behavior": "unknown",
+    "business_cost": "Prospect investigates and finds only 1 of the 3 roles is AI-related; the 'strong momentum' claim is challenged, reducing reply-to-book conversion rate and wasting 1 of 23 weekly qualified outreach slots",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P07",
+    "category": "Scheduling",
+    "rubric_category": "Scheduling & Routing",
+    "scenario": "The NileLedger VP replies 'Can we meet Thursday at 2pm Nairobi time?' The orchestrator extracts the time as '14:00' without the timezone context and passes slot_iso='2026-05-01T14:00:00Z' to Cal.com — booking 2pm UTC, which is 5pm Nairobi (EAT, UTC+3). The VP joins the call three hours late.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Sure, Thursday 2pm Nairobi time works for me. Please send the calendar invite."
+    },
+    "expected_failure": "Timezone extraction failure: 'Nairobi time' not resolved to Africa/Nairobi (UTC+3) before slot_iso construction; Cal.com books 14:00 UTC = 17:00 EAT, causing a no-show",
+    "observed_behavior": "unknown",
+    "business_cost": "No-show on a booked Segment 1 fintech demo; rescheduling burns 1 week of pipeline velocity and risks losing the contact window after the Series B closes — estimated $8,000 ACV opportunity deferred by 2–4 weeks",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P08",
+    "category": "Scheduling",
+    "rubric_category": "Scheduling & Routing",
+    "scenario": "NileLedger replies 'Thanks, interested. Can we book Thursday 2pm?' — a clear booking intent. The classify_email_reply() LLM call returns intent='unknown' instead of 'book_meeting' because the phrase 'Can we book' is parsed as a question rather than a booking request. The router maps 'unknown' to 'email_followup', sending a second generic email instead of triggering the Cal.com booking link.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Thanks, interested. Can we book Thursday 2pm?"
+    },
+    "expected_failure": "intent='unknown' returned for an unambiguous booking request; router stays in email_followup channel instead of escalating to schedule route via Cal.com",
+    "observed_behavior": "book_meeting",
+    "business_cost": "Booking delay of 24–48h while the email follow-up loop runs; warm prospects who do not receive a booking link within 2 hours convert at 30% lower rate — estimated 0.3 × $8,000 × 15% = $360 in expected pipeline per incident",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P09",
+    "category": "CRM",
+    "rubric_category": "CRM & Calendar Integration",
+    "scenario": "The NileLedger CTO uses two email addresses: cto@nileledger.com (personal) and partnerships@nileledger.com (shared inbox). HubSpot creates two contact records with the same company_id (cmp_001) but different HubSpot contact IDs. Tenacious's CRM bridge does not deduplicate by domain before upserting, so both contacts receive the outreach and booking link — the CTO sees two identical emails.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Hi again — I already received this email at my other address. Please do not send duplicates."
+    },
+    "expected_failure": "Identity split on NileLedger domain: two HubSpot contacts for cmp_001, both receiving outreach; deduplication logic checks company_id but not email domain normalization",
+    "observed_behavior": "unknown",
+    "business_cost": "Duplicate outreach to the same decision-maker destroys the impression of a research-grounded system; the CTO's trust in Tenacious's personalization collapses — opportunity loss on the $8,000 ACV deal and a 1-star internal review that blocks future referrals",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P10",
+    "category": "CRM",
+    "rubric_category": "CRM & Calendar Integration",
+    "scenario": "NileLedger's Cal.com booking is confirmed (slot: 2026-05-01T11:00:00Z, sandbox=true). The HubSpot update_booking_summary call returns '[FALLBACK] rate-limited/unavailable' — exactly as observed in the live Act II run. The SDR who takes over the call has no CRM timeline event for the booking and enters the conversation cold, without context from the outreach thread.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Booking confirmed for Thursday 11am UTC. Looking forward to speaking with your team."
+    },
+    "expected_failure": "Booking confirmation not logged to HubSpot timeline for cmp_001; SDR handoff is blind — the sales rep opens the call without knowing which competitor gap findings drove the meeting or what confidence level was used in the outreach",
+    "observed_behavior": "unknown",
+    "business_cost": "SDR blind handoff on a Segment 1 fintech deal; without the hiring_signal_brief context the sales rep defaults to generic discovery, reducing close probability from 15% to ~8% — estimated $560 in expected pipeline loss per incident ($8,000 × 7% close-rate delta)",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P11",
+    "category": "SMS",
+    "rubric_category": "SMS Compliance & Consent",
+    "scenario": "Tenacious routes an Africa's Talking SMS to +254700000000 (NileLedger VP) with message 'Happy to share a booking link for Thursday options.' The send_outbound_sms call is made with lead_context={'prospect_id': 'cmp_001'} — missing the 'prior_email_engagement': True key. The warm-lead gate checks lead_context.get('prior_email_engagement', False) and the missing key evaluates to False, but the SMS is sent anyway because the gate emits a warning log instead of raising.",
+    "input_payload": {
+      "channel": "sms",
+      "message": "Happy to share a booking link for Thursday options."
+    },
+    "expected_failure": "Warm-lead gate passes despite prior_email_engagement=False (missing key in lead_context); cold SMS sent to a prospect who has not yet replied to any email — violates Africa's Talking opt-in policy and exposes Tenacious to carrier block",
+    "observed_behavior": "unknown",
+    "business_cost": "Carrier-level SMS block on the Tenacious sending number for non-compliant outreach; Africa's Talking account suspension risk, removing the SMS channel for all 150 weekly leads — estimated $33,600/month revenue impact from the warm-lead SMS channel (from target_failure_mode.md cost model)",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P12",
+    "category": "SMS",
+    "rubric_category": "SMS Compliance & Consent",
+    "scenario": "A prospect responds to Tenacious's Africa's Talking SMS with 'Yes, send me the link.' The inbound webhook payload from Africa's Talking is missing the 'msisdn' field (network routing error sends only 'text' and 'to'). The SmsHandlerService tries to read payload['msisdn'] and raises a KeyError — the exception is caught at the top level and the reply is silently dropped without routing to the booking flow.",
+    "input_payload": {
+      "channel": "sms",
+      "message": "Yes, send me the link."
+    },
+    "expected_failure": "KeyError on missing 'msisdn' field in Africa's Talking inbound webhook; the warm reply is silently dropped — no booking link sent, no error logged to trace_log.jsonl, no alert fired",
+    "observed_behavior": "unknown",
+    "business_cost": "A warm inbound SMS reply (booking intent) lost silently; the prospect waits for a response that never comes and disengages — at 2 such incidents per week in a 150-lead pipeline, Tenacious loses ~$2,400/month in expected Segment 1 pipeline ($8,000 ACV × 15% × 2)",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P13",
+    "category": "Email",
+    "rubric_category": "Email Delivery & Webhook Handling",
+    "scenario": "Resend fires a bounce webhook for partnerships@nileledger.com with payload {'type': 'bounce', 'email': 'partnerships@nileledger.com'} — no 'event' field present (Resend schema changed the field name to 'type' in API v2). The Tenacious webhook handler calls payload['event'] and raises a KeyError, causing the entire FastAPI /webhook/email endpoint to return 500. Resend retries the webhook 5 times in 10 minutes, each failing.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Bounce event: partnerships@nileledger.com hard bounce, reason: user unknown."
+    },
+    "expected_failure": "KeyError on payload['event'] when Resend sends 'type' field instead; webhook endpoint crashes, Resend retry storm triggers 5 identical failures in 10 minutes, and the bounce suppression list is never updated — Tenacious keeps sending to a bounced address",
+    "observed_behavior": "unknown",
+    "business_cost": "Unhandled bounce generates a Resend retry storm (5 calls × $0.0001/call = negligible cost directly), but failing to suppress the bounced address leads to a domain reputation penalty from repeated hard bounces — deliverability drop across all 150 weekly Resend sends, reducing effective reply rate by an estimated 3–5 pp",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P14",
+    "category": "Email",
+    "rubric_category": "Email Delivery & Webhook Handling",
+    "scenario": "The NileLedger VP replies: 'Thanks for reaching out — we are not ready right now, please do not follow up before Q3 2026.' The classify_email_reply() LLM call correctly returns intent='not_now'. However, the ConversationOutcome router maps 'not_now' to route='email_followup' (a copy-paste error in the routing table) instead of route='stop'. Tenacious sends a follow-up email 24 hours later: 'Following up on our last note about AI team augmentation.'",
+    "input_payload": {
+      "channel": "email",
+      "message": "Thanks for reaching out — we are not ready right now, please do not follow up before Q3 2026."
+    },
+    "expected_failure": "intent='not_now' incorrectly routed to email_followup instead of stop; a second outreach email fires 24h later in direct violation of the prospect's explicit request",
+    "observed_behavior": "unknown",
+    "business_cost": "Unsolicited follow-up after explicit opt-out triggers unsubscribe and possible spam report; the NileLedger domain is suppressed permanently, eliminating a Q3 2026 re-engagement window worth an estimated $8,000 ACV",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P15",
+    "category": "Observability",
+    "rubric_category": "Observability & Trace Integrity",
+    "scenario": "During the 30-task Act I tau2-bench evaluation run, the trace writer attempts to append to trace_log.jsonl with a prospect name containing a non-ASCII character (e.g., 'Müller Fintech GmbH'). On the Windows evaluation host, the default 'charmap' codec cannot encode 'ü', raising UnicodeEncodeError. The exception propagates up and terminates the entire eval run at task 17, with no partial results saved to results/act1/.",
+    "input_payload": {
+      "channel": "email",
+      "message": "This message is from Müller Fintech GmbH — we are interested in AI team augmentation."
+    },
+    "expected_failure": "UnicodeEncodeError in trace_log.jsonl writer terminates the Act I evaluation at task 17/30; no partial act1_score.json is written, the run must restart from scratch and all LLM API costs ($0.000169 × 17 = $0.0029) are wasted",
+    "observed_behavior": "unknown",
+    "business_cost": "Full evaluation run restart costs $0.005076 in duplicate LLM spend and 185 additional seconds of compute; if this happens during a time-boxed submission window, the eval cannot be completed — missed submission deadline on the Tenacious pilot decision",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P16",
+    "category": "Observability",
+    "rubric_category": "Observability & Trace Integrity",
+    "scenario": "The NileLedger outreach thread (thread_id='thread-cmp_001') generates a trace_id in the email-send event. The Cal.com booking confirmation logs to HubSpot with a different trace context (a new UUID generated inside update_booking_summary). The two trace IDs do not match, so the audit trail for 'email sent → reply received → booking confirmed' for cmp_001 has a broken lineage — the booking cannot be traced back to the originating outreach.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Booking confirmed for NileLedger — thread-cmp_001 booked slot 2026-05-01T11:00:00Z."
+    },
+    "expected_failure": "Trace ID mismatch between Resend email event and HubSpot booking event for cmp_001; audit lineage is broken — post-pilot attribution analysis cannot confirm which outreach email drove the NileLedger booking",
+    "observed_behavior": "unknown",
+    "business_cost": "Broken trace lineage prevents ROI attribution in the 30-day pilot review; if the pilot's 12%-reply-rate success criterion is met but bookings cannot be traced to signal-grounded outreach, the pilot data cannot justify the scale-up decision — $4,800 pilot budget with unverifiable ROI",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P17",
+    "category": "Cost",
+    "rubric_category": "Cost & Concurrency Safety",
+    "scenario": "During competitor gap analysis for PayFlowAI (cmp_004), the OpenRouter Gemini Flash reasoning call returns HTTP 429 (rate-limited). The Tenacious retry logic in openrouter_client.py has no exponential backoff — it fires 10 immediate retries within 2 seconds. Each retry costs $0.0007 in token spend. Total cost for one failed enrichment: $0.007 versus the normal $0.0007, a 10× cost blowout. If this happens across 10 concurrent leads, spend is $0.07 for one enrichment batch — 30× over budget.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Retry storm triggered: 10 consecutive 429 errors on the competitor gap reasoning call for PayFlowAI enrichment."
+    },
+    "expected_failure": "No exponential backoff on OpenRouter 429 responses; 10 immediate retries per failure, each burning $0.0007 in LLM tokens — cost per enrichment spikes from $0.0007 to $0.007 under rate-limit conditions",
+    "observed_behavior": "unknown",
+    "business_cost": "At 150 leads/week with 5% hitting rate limits, 7–8 retry storms/week × $0.007 excess cost = $0.056/week in wasted LLM spend; annualized: ~$2,900 in unnecessary token burn; at scale (1,000 leads/week): $370/week or $19,240/year — exceeds the $1,200/week pilot budget cap",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P18",
+    "category": "Cost",
+    "rubric_category": "Cost & Concurrency Safety",
+    "scenario": "NileLedger (cmp_001) is processed through three sequential pipeline stages: (1) unified_signal_enrichment calls score_ai_maturity(), (2) competitor_gap calls score_ai_maturity() again for each peer including NileLedger, (3) run_signal_pipeline calls score_ai_maturity() a third time. Without the SHA256 cache key hit, each call costs $0.000229 in LLM tokens — total $0.000687 instead of $0.000229 for a 3× cost blowup on a single lead.",
+    "input_payload": {
+      "channel": "email",
+      "message": "score_ai_maturity() called 3 times for cmp_001 in one pipeline run: enrichment, competitor gap peer scoring, and signal pipeline."
+    },
+    "expected_failure": "Cache miss on score_ai_maturity for NileLedger due to cache key version mismatch (v1 vs v2 key); three identical LLM calls fire instead of one, tripling the per-lead cost from $0.000229 to $0.000687",
+    "observed_behavior": "unknown",
+    "business_cost": "At 150 leads/week, cache miss rate of 10% = 15 leads × $0.000458 excess = $0.007/week extra; minor individually, but signals a broken cache invalidation strategy that will compound as the lead volume grows toward the 1,000/week scale-up target",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P19",
+    "category": "Evaluation",
+    "rubric_category": "Evaluation & Test Integrity",
+    "scenario": "Task 'airline_task_001' appears in both the 30-task tau2 dev set (Act I) and the 20-task held-out set (Act IV). The deduplication filter uses a case-sensitive string match — the dev set has 'Airline_task_001' (capital A) while the held-out set has 'airline_task_001' (lowercase). The filter treats them as distinct, allowing the task to appear in both splits. The held-out pass@1 inflates from 0.85 to 0.90 for this shared task.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Dev/held-out task leakage detected: airline_task_001 appears in both the 30-task Act I dev set and the 20-task Act IV held-out evaluation."
+    },
+    "expected_failure": "Case-sensitive task_id deduplication allows 'Airline_task_001' (dev) and 'airline_task_001' (held-out) to be treated as distinct; held-out pass@1 is inflated — the 0.85 figure used in the pilot decision memo is overstated",
+    "observed_behavior": "unknown",
+    "business_cost": "Inflated held-out metric (0.85 → 0.90) drives an overly optimistic pilot recommendation; if the true pass@1 is 0.82–0.83, the 12%-reply-rate success criterion in the 30-day pilot may not be met — causing an early kill-switch activation and $4,800 pilot budget write-off",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P20",
+    "category": "Evaluation",
+    "rubric_category": "Evaluation & Test Integrity",
+    "scenario": "The Act I bootstrap CI for pass@1=0.5333 is computed with n_resamples=100 instead of 10,000 (a parameter accidentally reset to the default in eval/stats.py). The 95% CI widens from [0.37, 0.70] to [0.17, 0.83] — an interval so wide that the baseline cannot be distinguished from random, undermining the statistical basis for the +0.337 delta claim in the evidence graph.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Act I bootstrap CI computed with 100 resamples instead of 10,000; the [0.17, 0.83] interval makes the dev pass@1=0.5333 statistically indistinguishable from chance."
+    },
+    "expected_failure": "CI computation with n_resamples=100 produces an unreliably wide interval; the evidence_graph.json p_value=0.0001 is based on 10,000 resamples but if the CI runs with 100, the delta is not statistically significant — the pilot approval decision is based on invalid statistics",
+    "observed_behavior": "unknown",
+    "business_cost": "Invalid statistical basis for the pilot recommendation; if challenged during executive review, the entire $4,800 30-day pilot budget is blocked pending a rerun of Act I with correct resample count — adding 185 seconds of compute and $0.005076 in additional LLM costs",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P21",
+    "category": "Thread Safety",
+    "rubric_category": "Cost & Concurrency Safety",
+    "scenario": "Tenacious runs concurrent asyncio tasks for NileLedger (cmp_001, AI maturity score=1) and PayFlowAI (cmp_004, AI maturity score=3). Both tasks call score_ai_maturity() and write to _GLOBAL_CACHE simultaneously. NileLedger's cache write lands after PayFlowAI's read-check but before PayFlowAI's write-commit, replacing PayFlowAI's score=3 entry with NileLedger's score=1. PayFlowAI's outreach is then generated with AI maturity=1 instead of 3.",
+    "input_payload": {
+      "channel": "email",
+      "message": "PayFlowAI outreach generated with AI maturity score=1 (NileLedger's score) instead of score=3, due to concurrent cache write collision between cmp_001 and cmp_004 tasks."
+    },
+    "expected_failure": "Cross-lead cache collision: NileLedger's score_ai_maturity write overwrites PayFlowAI's entry in _GLOBAL_CACHE under asyncio concurrency; PayFlowAI receives the wrong maturity-based outreach framing",
+    "observed_behavior": "unknown",
+    "business_cost": "PayFlowAI (Segment 3 AI-leadership-transition target, AI maturity=3) receives a generic Segment 1 pitch because maturity=1 routes to segment_1 not segment_3 — wasted outreach slot on Tenacious's highest-value prospect archetype, and a missed $8,000 ACV opportunity",
+    "severity_score": 5,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P22",
+    "category": "Thread Safety",
+    "rubric_category": "Cost & Concurrency Safety",
+    "scenario": "Two concurrent enrichment requests for AtlasProcure (cmp_003) and LedgerNode (cmp_009) both read _GLOBAL_CACHE as None (both trigger a cold-start cache load from disk simultaneously). Both calls proceed to json.load(cache_store.json) in parallel — the second json.load() overlaps with the first's in-memory initialization, and the in-memory dict is left in a partial state where 12 of 24 expected cache entries are missing.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Concurrent cache cold-start for cmp_003 and cmp_009: both tasks loaded cache_store.json simultaneously, leaving _GLOBAL_CACHE in a partial state with 12 missing entries."
+    },
+    "expected_failure": "Non-atomic cache initialization under asyncio concurrency produces a partial _GLOBAL_CACHE state; 12 missing entries force redundant LLM calls on subsequent requests, producing nondeterministic per-run costs and outputs",
+    "observed_behavior": "unknown",
+    "business_cost": "Nondeterministic enrichment outputs for AtlasProcure and LedgerNode; reproducibility of the Act II results is compromised — the pilot's traceability requirement (every outreach claim maps to a brief entry) cannot be satisfied if the brief changes between runs for the same input",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P23",
+    "category": "Policy",
+    "rubric_category": "Tone & Language Policy",
+    "scenario": "NileLedger's ICP confidence at enrichment time is 0.61 (just below 0.62). A config race condition sets icp_threshold=0.60 for this batch run. The lead passes abstention and apply_confidence_conditioning() maps confidence=0.61 to 'Based on moderate-confidence indicators'. The outreach asserts 'three of your fintech peers are actively hiring MLOps Platform Engineers' — a factual claim from the competitor gap brief — but NileLedger's VP has already evaluated those peers and knows the claim is accurate only for two of them.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Based on moderate-confidence indicators, three of your fintech peers — PayFlowAI, QuantumPay, and DataBridgeAI — are actively hiring MLOps Platform Engineers while NileLedger's public job snapshot shows no equivalent role."
+    },
+    "expected_failure": "Confidence policy applied at confidence=0.61 allows a factual peer-count claim ('three peers') when the competitor gap brief only confirms two top-quartile peers with that role; the third (DataBridgeAI) is not top-quartile and should not be cited assertively",
+    "observed_behavior": "unknown",
+    "business_cost": "Prospect challenges the factual claim during reply; Tenacious's research credibility is damaged — a prospect who catches an overstatement in the first email is 60% less likely to book a call; estimated $4,800 in expected pipeline loss per such incident ($8,000 ACV × 60% degrade × 15% close rate)",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P24",
+    "category": "Policy",
+    "rubric_category": "Tone & Language Policy",
+    "scenario": "With SIGNAL_CONFIDENCE_MODE=binary_threshold and binary_threshold_cutoff=0.70, AtlasProcure (supply_chain, ICP confidence=0.65) receives 'Based on early indicators' phrasing. AtlasProcure's hiring_velocity shows open_roles_today=3 vs open_roles_60_days_ago=1 (tripled), and a recent leadership change was detected (VP Revenue hired). The binary mode cannot distinguish between 'weak signal' and 'moderate-strong signal' in the 0.55–0.70 band, causing an under-pitched outreach that treats a warm prospect as cold.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Based on early indicators, we noticed AtlasProcure may be expanding — if AI team augmentation is on your roadmap, we would be happy to share some context."
+    },
+    "expected_failure": "binary_threshold mode misclassifies a confidence=0.65 warm lead (with 3× hiring velocity and leadership change) as 'early indicators'; the softened phrasing implies low interest when the signals warrant a Segment 3 leadership-transition pitch",
+    "observed_behavior": "unknown",
+    "business_cost": "Under-pitched outreach to 8 AtlasProcure-archetype leads per week (confidence 0.55–0.70 band); each receives a cold-prospect framing instead of a warm one — estimated 5 pp lower reply rate vs confidence_aware, costing ~0.4 qualified bookings/week or ~$2,400/month in pipeline at $8,000 ACV",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P25",
+    "category": "Integration",
+    "rubric_category": "CRM & Calendar Integration",
+    "scenario": "Cal.com fires the BOOKING_CREATED webhook for NileLedger's Thursday 11am slot twice — Cal.com's retry logic sends a second webhook 30 seconds after the first when it does not receive a 200 within 5 seconds (Tenacious was processing the first). The Tenacious orchestrator has no idempotency key check on incoming Cal.com webhooks. Both webhooks trigger update_booking_summary calls to HubSpot for cmp_001, creating two timeline events with identical slot data.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Cal.com duplicate BOOKING_CREATED webhook received for NileLedger slot 2026-05-01T11:00:00Z — two HubSpot timeline events created for cmp_001."
+    },
+    "expected_failure": "No idempotency check on Cal.com BOOKING_CREATED webhooks; duplicate event triggers two HubSpot update_booking_summary calls, creating noise in the CRM timeline that confuses the SDR handoff",
+    "observed_behavior": "unknown",
+    "business_cost": "Duplicate CRM timeline events require manual SDR cleanup (~15 minutes per incident); at 2 incidents/week across 23 qualified bookings, this adds 30 minutes/week of SDR overhead — at $60K/year SDR cost ($29/hour), $870/year in wasted SDR time, plus risk of double-booking the NileLedger slot",
+    "severity_score": 2,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P26",
+    "category": "Integration",
+    "rubric_category": "CRM & Calendar Integration",
+    "scenario": "The HubSpot EU API returns HTTP 504 (gateway timeout) during the update_booking_summary call for ClinixFlow (cmp_002) after a 30-second wait. The Tenacious CRM bridge has a single-attempt write with no retry or dead-letter queue. The 504 is caught, logged as '[FALLBACK] rate-limited/unavailable', and execution continues — but the interaction is permanently unlogged in HubSpot.",
+    "input_payload": {
+      "channel": "email",
+      "message": "HubSpot 504 timeout on update_booking_summary for ClinixFlow (cmp_002); interaction permanently unlogged — no CRM timeline event, no SDR handoff context."
+    },
+    "expected_failure": "Single-attempt HubSpot write with no retry; 504 timeout causes permanent data loss — ClinixFlow's booking is confirmed in Cal.com but invisible in HubSpot, leaving the SDR with no context for the call",
+    "observed_behavior": "unknown",
+    "business_cost": "SDR enters the ClinixFlow call (a Segment 2 healthtech prospect with 1,200 employees) with no CRM history; without the AI maturity score=1 and layoff_event context, the SDR pitches the wrong segment — estimated $1,200 in expected pipeline loss on a deal that closes at 15% × $8,000 ACV",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P27",
+    "category": "Data Quality",
+    "rubric_category": "Signal Reliability & Grounding",
+    "scenario": "AtlasProcure's Crunchbase record has founded_year=null (the company is too new to have a public filing date). The LLM normalization call still produces confidence=0.70 for the crunchbase signal, but the segment classifier uses founded_year to compute company_age — dividing open_roles count by company tenure as a maturity proxy. A null founded_year causes a ZeroDivisionError that is caught silently, and the tenure signal is set to 0, lowering segment_confidence from 0.63 to 0.51 and triggering abstention.",
+    "input_payload": {
+      "channel": "email",
+      "message": "AtlasProcure profile missing founded_year; company age cannot be computed — segment_confidence drops from 0.63 to 0.51, triggering abstention for a lead that should receive a Segment 4 pitch."
+    },
+    "expected_failure": "Silent ZeroDivisionError on null founded_year causes tenure proxy to default to 0; segment_confidence drops below 0.62 and abstention fires — AtlasProcure, a genuinely warm supply-chain prospect, is silently skipped",
+    "observed_behavior": "unknown",
+    "business_cost": "Warm supply-chain lead silently skipped due to a data-quality gap in Crunchbase; at a 5% null founded_year rate across 150 weekly leads, 7–8 prospects/week are incorrectly abstained — estimated $6,720/month in forgone pipeline ($8,000 ACV × 15% close rate × 7 leads/week × 4 weeks)",
+    "severity_score": 2,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P28",
+    "category": "Data Quality",
+    "rubric_category": "Signal Reliability & Grounding",
+    "scenario": "NileLedger's leadership_changes field contains 'New CTO joined in Q1 2O26' — a typo where the digit 0 in '2026' was replaced with the letter O. The leadership_loader._infer_role() parser searches for 'cto' in the lowercase string 'new cto joined in q1 2o26' — but the match succeeds (because 'cto' is present) and inferred_role='cto' is returned correctly. However, the segment classifier also checks leadership_changes for 'Q1 2026' to determine if the change is recent (within 6 months), and the string comparison fails — the change is classified as historic, missing the Segment 3 leadership-transition buying signal.",
+    "input_payload": {
+      "channel": "email",
+      "message": "NileLedger leadership change 'New CTO joined in Q1 2O26' contains a typo (letter O instead of digit 0); the recency check fails and the Segment 3 leadership-transition buying signal is missed."
+    },
+    "expected_failure": "Typo in leadership_changes string ('2O26' vs '2026') causes the recency date parser to fail silently; the CTO hire is classified as 'historic' instead of 'recent Q1 2026', and NileLedger misses the Segment 3 classification — pitched as Segment 1 instead",
+    "observed_behavior": "unknown",
+    "business_cost": "NileLedger receives a generic Segment 1 funding-momentum pitch instead of a Segment 3 leadership-transition pitch tailored to the new CTO's AI mandate; segment mismatch reduces reply rate by an estimated 8 pp (confidence_aware delta) — $960 in expected pipeline loss on the NileLedger deal",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P29",
+    "category": "Security",
+    "rubric_category": "Observability & Trace Integrity",
+    "scenario": "A Resend bounce webhook for nileledger.com delivers a 5 MB payload — the full bounced email body is base64-encoded and embedded in the webhook JSON under 'raw_message'. The FastAPI /webhook/email endpoint reads the entire body into memory with await request.json(), triggering a MemoryError on the evaluation host (512 MB RAM limit). The endpoint crashes and the uvicorn worker restarts, taking the webhook listener offline for 30 seconds.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Oversized Resend webhook payload (5 MB) received for nileledger.com bounce — FastAPI /webhook/email endpoint crashed with MemoryError, taking the webhook listener offline for 30 seconds."
+    },
+    "expected_failure": "No payload size limit on /webhook/email; 5 MB JSON body causes MemoryError on a 512 MB host — the endpoint crashes and all Resend webhooks (bounces, opens, replies) are dropped for 30 seconds",
+    "observed_behavior": "unknown",
+    "business_cost": "30-second webhook listener outage drops all Resend events for active threads; if a NileLedger reply webhook lands during the outage it is permanently lost — estimated 1 warm reply lost per outage incident × 2 incidents/month = $2,400/month in unrecovered pipeline at $8,000 ACV",
+    "severity_score": 3,
+    "observed_trigger_rate": 1.0
+  },
+  {
+    "id": "P30",
+    "category": "Security",
+    "rubric_category": "Observability & Trace Integrity",
+    "scenario": "A prospect replies to Tenacious's NileLedger outreach with the body: 'Thanks for reaching out — <script>document.cookie=\"stolen=\"+document.cookie</script>. We are interested.' The classify_email_reply() LLM call receives the raw HTML without sanitization. The unsanitized reply — including the script tag — is written verbatim to trace_log.jsonl and appears in the Tenacious audit log viewer, creating a stored XSS vector for anyone who opens the log in a browser.",
+    "input_payload": {
+      "channel": "email",
+      "message": "Thanks for reaching out — <script>document.cookie=\"stolen=\"+document.cookie</script>. We are interested."
+    },
+    "expected_failure": "Unsanitized HTML in inbound email reply written verbatim to trace_log.jsonl; stored XSS payload executes in the browser of any Tenacious engineer who views the audit log — session cookie theft risk on the internal log viewer",
+    "observed_behavior": "unknown",
+    "business_cost": "Stored XSS in the Tenacious audit log viewer; if an engineer's session cookie is stolen, an attacker gains access to the HubSpot CRM bridge and Resend API credentials stored in the orchestrator environment — potential data breach exposing all 150 weekly leads and their email threads, with regulatory liability under GDPR Article 83 (up to 4% of annual global turnover)",
+    "severity_score": 4,
+    "observed_trigger_rate": 1.0
+  }
+]

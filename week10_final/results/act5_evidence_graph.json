@@ -1,0 +1,34 @@
+{
+  "metrics_to_evidence": {
+    "dev_pass_at_1": {
+      "value": 0.5333,
+      "source_file": "eval/score_log.json"
+    },
+    "heldout_pass_at_1": {
+      "value": 0.87,
+      "source_file": "eval/heldout_summary.json"
+    },
+    "ablation_confidence_aware": {
+      "value": 0.76,
+      "source_file": "ablation_results.json"
+    },
+    "cost_per_task": {
+      "value": 0.000229,
+      "source_file": "invoice_summary.json"
+    },
+    "delta_method_minus_baseline": {
+      "value": 0.33666666666666667,
+      "source": "bootstrap_difference"
+    },
+    "p_value": {
+      "value": 0.0001,
+      "source": "bootstrap_difference"
+    }
+  },
+  "stat_test": {
+    "delta": 0.33666666666666667,
+    "p_value": 0.0001,
+    "ci_low": 0.14666666666666672,
+    "ci_high": 0.5266666666666666
+  }
+}
