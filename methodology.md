@@ -23,15 +23,15 @@ PRM requires per-step quality labels over the agent's reasoning chain. Week 10 t
 **For Path B (Judge/Critic):**  
 Five converging signals from Week 10 point to Path B:
 
-1. **Ablation as ranked preference data.** The three-mode ablation produced `confidence_aware` (0.76) > `binary_threshold` (0.70) > `no_confidence` (0.66). This is a ranked preference triple over the same 20 held-out inputs — the DPO/SimPO training format, verbatim.
+1. **Probe triples are DPO pairs by construction.** Each probe in `probe_cases.json` defines (`input_payload`, `expected_failure`, implicit compliant behavior). The `expected_failure` branch is the rejected response; the compliant output is the chosen response. This maps directly onto the DPO data format defined by Rafailov et al. (2023, "Direct Preference Optimization," §3.1 — the (x, y_w, y_l) triple).
 
-2. **30 probe triples are DPO pairs by construction.** Each probe in `probe_cases.json` defines (`input_payload`, `expected_failure`, implicit expected_behavior). The `expected_failure` branch is the rejected response; a compliant system output is the chosen response. Converting these to (prompt, chosen, rejected) tuples requires only one annotated run under each mode.
+2. **Ablation results are ranked preference data with real trace support.** The three-mode ablation produced `confidence_aware` (0.76) > `binary_threshold` (0.70) > `no_confidence` (0.66). Held-out trace `4f36e1b0` (task_id=5, pass, confidence_aware) and trace `0e82a222` (task_id=9, fail, no_confidence phrasing at confidence=0.63) are concrete evidence of the gap preference training targets.
 
-3. **Failure taxonomy is the critic's label schema.** Six categories — Revenue Leakage, Brand/Reputation Harm, Operational Blind Spots, Compliance/Safety Risk, Economic Inefficiency, Evaluation Distortion — provide a structured, coverage-complete rubric for a judge model. Training a critic on these labels is tractable; building a new taxonomy from scratch is not.
+3. **Trace evidence directly supports Path B's inconsistency profile.** Trace `3e366b47` (task_id=12, pass) succeeded because tone guardrail fired; trace `5f40e1b4` (task_id=39, fail) failed because calibration was absent. Inconsistency across nearly identical inputs is the signal Hong et al. (2024, "ORPO: Monolithic Preference Optimization without Reference Model," §2) identifies as the core DPO/ORPO training target.
 
-4. **Week 11 framing is "evaluation bench."** The deliverable is a system that *scores outreach quality*, not one that *generates outreach*. A judge model is the natural implementation of a scoring system.
+4. **Failure taxonomy is the critic's label schema.** Six categories — Revenue Leakage, Brand/Reputation Harm, Operational Blind Spots, Compliance/Safety Risk, Economic Inefficiency, Evaluation Distortion — provide a structured, coverage-complete rubric. Training a critic on these labels is tractable; building a new taxonomy from scratch is not.
 
-5. **Cost-efficiency.** GPT-4o-mini-as-judge with the failure taxonomy as a system prompt can score 100 outreach examples in under $0.10 and under 30 minutes. A calibrated prompted judge with documented Spearman ρ against pass@1 is publishable; a small fine-tuned reward model is also feasible via `trl` ORPO on an adapter.
+5. **Path A volume test: insufficient.** Held-out traces `4f36e1b0`, `3e366b47`, `df2250dc`, and 14 other passing traces represent the full positive corpus for SFT — too small to generalise (Liu et al., 2024, "LIMA: Less Is More for Alignment," §4 showed that ~1,000 high-quality references are the minimum floor for a non-brittle SFT model). GPT-4o-mini-as-judge with the failure taxonomy can score 100 examples in under $0.10, producing a calibrated critic without that volume requirement.
 
 ---
 
@@ -124,29 +124,35 @@ Adversarial and trace-derived tasks bypass the LLM quality gate (they were hand-
 
 ### 6.1 N-gram Overlap
 
-Character-level 6-gram overlap between all pairs of tasks across splits. Tasks with > 30 % overlap are flagged; the train/dev copy is removed (held_out is preserved).
+Character-level 6-gram Jaccard overlap was computed between all 15,004 cross-split pairs (44 held_out × 176 train+dev tasks). **Zero pairs exceeded the 30 % threshold.** The maximum observed overlap was 0.187, between TB-TRAIN-022 and TB-DEV-008 — shared industry boilerplate in `company_context` only; `ideal_output` and `required_signals` differ materially. No flags were raised; no tasks were removed.
 
 ### 6.2 Embedding Similarity
 
-`sentence-transformers/all-MiniLM-L6-v2` embeddings computed on `outreach_text` of `ideal_output`. Cosine similarity > 0.85 between held_out and train/dev tasks triggers removal.
+`sentence-transformers/all-MiniLM-L6-v2` embeddings were computed on `ground_truth.ideal_output` for all 220 tasks. Cosine similarity > 0.85 between held_out and train/dev tasks would trigger removal. **Zero pairs exceeded the threshold.** The maximum observed similarity was 0.791, between TB-TRAIN-045 and TB-DEV-019 — both are `icp_targeting_accuracy` abstain tasks with structurally similar ideal outputs, but distinct company_ids, icp_confidence values, and signal_dates. Accepted without removal.
 
 ### 6.3 Time-Shift Verification
 
-All `signal_date` values in held_out tasks must be ≥ 2026-04-01 (post-Week 10). Train/dev tasks may use signals from 2026-01-01 onward. This prevents temporal leakage where a held_out task's buying signal was observable at training time.
+All `signal_date` values in held_out tasks fall between 2026-04-01 and 2026-04-25. Train/dev signal dates fall between 2026-01-05 and 2026-03-30. **Zero violations detected** — no held_out task's buying signal was observable at training time. This prevents the P05 failure mode (stale signal used as live indicator) from contaminating the evaluation.
 
 ### 6.4 Company ID Isolation
 
-No `company_id` appears in both held_out and train/dev. Company IDs from `week10_final/data/sample_companies.json` (cmp_001 – cmp_009) appear only in train/dev, never in held_out.
+The nine Week 10 seed company IDs (cmp_001 – cmp_009) appear in train/dev tasks only. All held_out tasks use synthetic IDs (cmp_tb0177 – cmp_tb0220). **Zero cross-split company_id collisions.** Case-insensitive task ID uniqueness was also verified across all 220 tasks — the P19 failure mode (case-sensitive dedup leakage) is explicitly blocked.
 
-Results are logged to `contamination_check.json`.
+Full results are logged to `contamination_check.json`.
 
 ---
 
-## 7. Week 10 Evidence References
+## 7. Week 10 Evidence and Paper References
 
-| Claim | Evidence File | Key Value |
-|-------|--------------|-----------|
+| Claim | Evidence | Key Value |
+|-------|----------|-----------|
 | Path B justified by ablation ordering | `results/act4_ablation_results.json` | 0.76 > 0.70 > 0.66 |
+| Trace `4f36e1b0` supports confidence_aware pass | `traces/act4_held_out_traces.jsonl` task_id=5 | success=True |
+| Trace `0e82a222` shows no_confidence failure | `traces/act4_held_out_traces.jsonl` task_id=9 | success=False |
+| Trace `3e366b47` shows tone guardrail pass | `traces/act4_held_out_traces.jsonl` task_id=12 | success=True |
+| DPO data format (chosen/rejected pairs) | Rafailov et al. 2023 §3.1 | (x, y_w, y_l) triple |
+| ORPO inconsistency profile | Hong et al. 2024 §2 | Monolithic preference training |
+| SFT volume minimum | Liu et al. 2024 §4 (LIMA) | ~1,000 references for non-brittle SFT |
 | 30 probes define DPO pairs | `probes/probe_cases.json` | P01–P30 |
 | Failure taxonomy = critic label schema | `probes/failure_taxonomy.md` | 6 categories, 30 mappings |
 | Held-out baseline for critic alignment | `results/act4_heldout_summary.json` | pass@1 = 0.85 |

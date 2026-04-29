@@ -61,7 +61,47 @@ Each task contains:
 - `evaluator_config`: machine-verifiable scoring parameters
 
 **How many instances are there?**  
-220 total. Distribution: 10 dimensions × 22 tasks each = 220. Each dimension has 11 training, 7 dev, 4 held-out tasks (with 4 dimensions receiving an additional 2–3 tasks in the train split based on probe coverage weight).
+220 total across three partitions:
+
+| Split | Tasks | Fraction |
+|-------|-------|----------|
+| train | 110 | 50 % |
+| dev | 66 | 30 % |
+| held_out | 44 | 20 % |
+
+By source mode:
+
+| Source Mode | Tasks | Proportion | Splits |
+|-------------|-------|-----------|--------|
+| trace_derived | 66 | 30 % | across all |
+| programmatic | 66 | 30 % | across all |
+| multi_llm_synthesis | 55 | 25 % | across all |
+| hand_authored_adversarial | 33 | 15 % | across all |
+
+By failure dimension (22 tasks per dimension across the full set):
+
+| Dimension | Tasks | Primary Probes |
+|-----------|-------|---------------|
+| signal_grounded_personalization | 22 | P05, P06 |
+| confidence_aware_phrasing | 22 | P23, P24 |
+| hallucination_avoidance | 22 | P03, P23 |
+| brand_safe_tone | 22 | P03, P04 |
+| multi_turn_objection_handling | 22 | P14 |
+| cta_behavior | 22 | P08 |
+| icp_targeting_accuracy | 22 | P01, P02 |
+| competitor_gap_reasoning | 22 | P27, P28 |
+| pricing_discipline | 22 | (programmatic) |
+| thread_continuation_coherence | 22 | P07, P08 |
+
+**Per-mode examples (what a typical task in each mode looks like):**
+
+*Trace-derived:* A task derived from held-out trace `4f36e1b0` (task_id=5). The company context is a fintech Series B company with `icp_confidence=0.71`; the signal brief includes `open_roles_today=3`, `open_roles_60d_ago=1`, and no honesty flags. The task instruction asks the agent to compose a grounded email. The ideal output is the actual passing model output from the trace, anonymised (company name replaced, employee count perturbed ±20 %).
+
+*Programmatic:* A task generated from a template with randomly sampled industry=`healthtech`, funding_stage=`Series C`, employee_count=380, icp_confidence=0.68. The banned phrases list is drawn from `BANNED_POOLS["default"]`; the required signals include the industry and funding stage. The ideal output is a filled template with no LLM call. These tasks cover easy and medium difficulty and are most useful for rubric calibration.
+
+*Multi-LLM synthesis:* A task where GPT-4o-mini generated a draft for the `competitor_gap_reasoning` dimension, and a second GPT-4o-mini call (with the judge system prompt from `generation_scripts/prompts/judge_quality_gate.md`) reviewed and accepted it. The ideal output references two named peers with specific role titles. These tasks are harder and more semantically rich than programmatic tasks but required a 22 % rejection rate through the quality gate.
+
+*Hand-authored adversarial:* A task derived directly from P03 (`probe_cases.json`). The `input_payload` is the candidate text containing "guarantee results"; the task instruction asks the agent to evaluate whether the outreach is compliant. The ideal output is a refusal + corrected version. These are the only tasks with `difficulty=adversarial` and are the primary training signal for the critic model's safety awareness.
 
 **Is each instance independent?**  
 Yes with one exception: thread_continuation_coherence tasks include multi-turn histories where Turn 1 is shared with the corresponding signal_grounded_personalization task. This is documented in `metadata.probe_ref`.
@@ -132,7 +172,23 @@ Raw trace data is in `week10_final/traces/` and `week10_final/results/`. Raw pro
 
 ---
 
-### 6. Risks and Limitations
+### 6. Distribution
+
+**How is the dataset distributed?**  
+TenaciousBench v0.1 is distributed as a Git repository. The three split JSONL files are committed to the repo and are available to anyone with repository access. There is no separate download mechanism or API endpoint.
+
+**Is there a license?**  
+The dataset and all accompanying code are released under the **MIT License**. Rationale: MIT is permissive, allows derivative benchmarks and commercial research use, and places no obligation on users to open-source their models trained on this data. This is intentional — the benchmark is designed to be adopted as a shared evaluation standard across B2B AI tooling teams, which requires minimal friction.
+
+**Are there restrictions on use?**  
+No legal restrictions beyond the MIT License. However, users are strongly advised not to expose the held_out split to an agent under test before evaluation. The held_out split should be treated as a sealed test set; once a system has been evaluated on it, the evaluation is no longer valid for that system.
+
+**Have any third parties imposed IP-based or other restrictions on the data?**  
+No. All company names, prospect profiles, and signal data are synthetic. No real company data, proprietary sales data, or licensed external data is used.
+
+---
+
+### 7. Risks and Limitations
 
 **Scope limitation:**  
 The benchmark is calibrated to the Tenacious Conversion Engine's failure modes. It will surface ICP, confidence, and tone failures specifically; it does not cover all possible B2B sales failures (e.g., pricing negotiation, proposal writing, legal contract review).
@@ -151,7 +207,7 @@ The `tone_markers` dimension relies on GPT-4o-mini as a judge. If the judge mode
 
 ---
 
-### 7. Maintenance
+### 8. Maintenance
 
 **Who is responsible for maintenance?**  
 Eyor Getachew (eyor@10academy.org). Issues should be filed in the project repository.
