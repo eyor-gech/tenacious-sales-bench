@@ -30,6 +30,18 @@ load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "openai/gpt-4o-mini")
+SYNTHESIS_MODEL = os.getenv("SYNTHESIS_MODEL", "openai/gpt-4o-mini")
+
+# Guard: generation model and judge model must differ to prevent preference leakage.
+# See generation_scripts/prompts/routing_policy.md for the full rotation policy.
+if SYNTHESIS_MODEL == JUDGE_MODEL and OPENROUTER_API_KEY:
+    import warnings
+    warnings.warn(
+        f"SYNTHESIS_MODEL ({SYNTHESIS_MODEL}) == JUDGE_MODEL ({JUDGE_MODEL}). "
+        "This allows a single model to generate and judge the same task, risking preference leakage. "
+        "Set SYNTHESIS_MODEL=anthropic/claude-3-haiku in .env to enforce rotation.",
+        stacklevel=2,
+    )
 
 REQUIRED_TOP_KEYS = {"task_id", "metadata", "source_mode", "difficulty", "input", "ground_truth", "scoring_rubric", "evaluator_config"}
 REQUIRED_METADATA_KEYS = {"dimension", "created_by", "created_at", "contamination_checked", "scoring_type", "probe_ref"}
@@ -41,22 +53,47 @@ VALID_DIMENSIONS = {
 VALID_SOURCE_MODES = {"trace_derived", "programmatic", "multi_llm_synthesis", "hand_authored_adversarial"}
 EASY_ORACLE_CAP = 0.20
 
+# 3-dimension judge gate thresholds (see prompts/judge_quality_gate.md for full prompt).
+# Acceptance rule: total >= JUDGE_ACCEPT_THRESHOLD AND no dimension scored 0.
+JUDGE_ACCEPT_THRESHOLD = 4   # out of 6 total (3 dimensions × max 2 each)
+JUDGE_DIM_FLOOR = 1          # any dimension scoring 0 → reject regardless of total
 
-_JUDGE_SYSTEM = """You are a benchmark quality reviewer for TenaciousBench, a B2B outbound sales agent evaluation benchmark.
+# Judge prompt loaded from committed markdown (see prompts/judge_quality_gate.md).
+_PROMPT_PATH = Path(__file__).parent / "prompts" / "judge_quality_gate.md"
 
-Given a task JSON, answer YES if:
-- The task clearly tests exactly one of the ten TenaciousBench dimensions
-- The task_instruction is actionable and unambiguous
-- The ideal_output is a realistic, complete agent response
-- The banned_phrases and required_signals are relevant to the dimension
-- The task is distinct enough from a generic email-writing task
+def _load_judge_system_prompt() -> str:
+    """Extract the system prompt block from the committed markdown file."""
+    if not _PROMPT_PATH.exists():
+        # Fallback inline prompt if markdown file is missing.
+        return _JUDGE_SYSTEM_FALLBACK
+    text = _PROMPT_PATH.read_text(encoding="utf-8")
+    # Extract content between the first ```...``` block after "## System Prompt"
+    import re
+    match = re.search(r"## System Prompt\s*```\s*(.*?)```", text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return _JUDGE_SYSTEM_FALLBACK
 
-Answer NO if:
-- The task is ambiguous about which dimension it tests
-- The ideal_output is a template placeholder or incomplete
-- The task could be answered correctly by any capable LLM without domain knowledge
 
-Respond with exactly: YES or NO, followed by a colon and a one-sentence reason."""
+# Inline fallback in case the prompt file is unavailable.
+_JUDGE_SYSTEM_FALLBACK = """You are a benchmark quality reviewer for TenaciousBench, a B2B outbound sales agent evaluation benchmark.
+
+Score the following task on THREE dimensions. Return a JSON object with exactly this structure:
+{
+  "input_coherence": <integer 0, 1, or 2>,
+  "ground_truth_verifiability": <integer 0, 1, or 2>,
+  "rubric_application_clarity": <integer 0, 1, or 2>,
+  "total": <integer 0-6>,
+  "accept": <boolean>,
+  "reason": "<one sentence>"
+}
+
+Dimension scoring:
+1. input_coherence: 2=fully consistent context, 1=minor inconsistency, 0=contradictory
+2. ground_truth_verifiability: 2=mechanically verifiable, 1=requires semantic judgment, 0=placeholder or contradictory
+3. rubric_application_clarity: 2=all rubric dims apply, 1=one borderline, 0=rubric mismatch
+
+Accept if total >= 4 AND no dimension is 0."""
 
 
 def check_completeness(task: dict) -> tuple[bool, str]:
@@ -113,11 +150,24 @@ def check_rubric_coherence(task: dict) -> tuple[bool, str]:
 
 
 def check_llm_quality(task: dict, api_key: str, model: str) -> tuple[bool, str, int]:
+    """
+    3-dimension scored quality gate (see prompts/judge_quality_gate.md for full spec).
+
+    Dimensions scored 0–2 each:
+      1. input_coherence        (threshold: >= 1)
+      2. ground_truth_verifiability (threshold: >= 1)
+      3. rubric_application_clarity (threshold: >= 1)
+
+    Acceptance rule: total >= JUDGE_ACCEPT_THRESHOLD (4/6) AND no dimension scored 0.
+    Source modes exempt from LLM gate: hand_authored_adversarial, trace_derived.
+    """
     if not api_key:
         return True, "LLM gate skipped (no API key)", 0
 
     if task.get("source_mode") in {"hand_authored_adversarial", "trace_derived"}:
         return True, "Source mode exempt from LLM gate", 0
+
+    system_prompt = _load_judge_system_prompt()
 
     try:
         import httpx
@@ -129,6 +179,10 @@ def check_llm_quality(task: dict, api_key: str, model: str) -> tuple[bool, str, 
             "ideal_output": task.get("ground_truth", {}).get("ideal_output", "")[:300],
             "banned_phrases": task.get("ground_truth", {}).get("banned_phrases", []),
             "required_signals": task.get("ground_truth", {}).get("required_signals", []),
+            "icp_confidence": task.get("input", {}).get("signal_brief", {}).get("icp_confidence"),
+            "rubric_dimensions": [
+                d["name"] for d in task.get("scoring_rubric", {}).get("dimensions", [])
+            ],
         }
 
         resp = httpx.post(
@@ -137,18 +191,36 @@ def check_llm_quality(task: dict, api_key: str, model: str) -> tuple[bool, str, 
             json={
                 "model": model,
                 "messages": [
-                    {"role": "system", "content": _JUDGE_SYSTEM},
-                    {"role": "user", "content": f"Task to review:\n{json.dumps(task_summary, indent=2)}"},
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Task to score:\n{json.dumps(task_summary, indent=2)}"},
                 ],
-                "max_tokens": 100,
+                "max_tokens": 250,
                 "temperature": 0.0,
             },
-            timeout=15.0,
+            timeout=20.0,
         )
         resp.raise_for_status()
-        answer = resp.json()["choices"][0]["message"]["content"].strip()
-        passed = answer.upper().startswith("YES")
-        return passed, answer, 1
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
+
+        # Parse the structured JSON response
+        import re
+        json_match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group())
+            scores = {
+                "input_coherence": int(result.get("input_coherence", 0)),
+                "ground_truth_verifiability": int(result.get("ground_truth_verifiability", 0)),
+                "rubric_application_clarity": int(result.get("rubric_application_clarity", 0)),
+            }
+            total = sum(scores.values())
+            any_zero = any(v == 0 for v in scores.values())
+            passed = (total >= JUDGE_ACCEPT_THRESHOLD) and not any_zero
+            reason = result.get("reason", "structured gate applied")
+            detail = f"scores={scores} total={total}/6 accept={passed} | {reason}"
+            return passed, detail, 1
+
+        # Fallback: could not parse JSON; accept with warning
+        return True, f"Could not parse structured judge response; accepting: {raw[:100]}", 1
 
     except Exception as exc:
         return True, f"LLM gate error (accepting task): {exc}", 0
