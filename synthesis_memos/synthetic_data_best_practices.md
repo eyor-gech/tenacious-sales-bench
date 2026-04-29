@@ -34,7 +34,9 @@ There is a temptation to use a large language model to generate adversarial task
 
 ## One Disagreement with Current Literature
 
-Wang et al. (2023) "Self-Instruct" and subsequent work (Alpaca, WizardLM) demonstrate that LLM-generated instruction datasets can achieve strong instruction-following benchmarks. This success has been overgeneralized to mean that LLM-generated data is suitable for domain-specific safety and alignment benchmarks.
+Wang et al. (2023) "Self-Instruct: Aligning Language Models with Self-Generated Instructions" and subsequent work (Alpaca, WizardLM) demonstrate that LLM-generated instruction datasets can achieve strong instruction-following benchmarks. This success has been overgeneralized to mean that LLM-generated data is suitable for domain-specific safety and alignment benchmarks.
+
+**The specific design choice we disagree with:** Wang et al. §4.2 ("Diversity and Quality of Self-Instruct Data") states that machine-generated instructions covering diverse tasks are sufficient for alignment when seeded from 175 hand-written examples. The paper reports that Self-Instruct-trained models match InstructGPT (001) on SUPERNI with only 5% human-authored data. This result is cited in Alpaca (Taori et al., 2023, §3) as justification for discarding hand-authored adversarial examples entirely.
 
 **We disagree.** Self-Instruct-style generation is appropriate when the target skill is *instruction following* — a distribution the LLM has seen extensively in pretraining. It is not appropriate when the target skill is *failure mode detection in a specific production system*. The value of TenaciousBench's adversarial tasks comes precisely from their specificity to the Tenacious Conversion Engine's code paths (ICP classifier threshold, confidence prefix policy, tone guardrail regex). A self-generated dataset cannot reproduce this specificity without access to the codebase — and if it had that access, it would be fine-tuning, not benchmark construction.
 
