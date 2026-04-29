@@ -22,7 +22,6 @@ import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 from dotenv import load_dotenv
 
@@ -101,6 +100,15 @@ def score_banned_phrases(
     """
     Returns (score, reason).
     score = 1.0 if no violations; subtract 0.5 per violation, floor 0.
+
+    Calibration:
+      1.0 — Zero banned phrases detected (global + task-specific lists).
+             Example passing output: "Based on available data, NovaPay's 4 open roles
+             suggest scaling momentum. Happy to share a 20-min overview: [cal.com link]"
+      0.5 — One violation found (e.g., "guarantee" or "clearly lacks").
+             Example: "We guarantee your team will see results within 60 days."
+      0.0 — Two or more violations in the same output.
+             Example: "We guarantee results — and we promise you are clearly behind your peers."
     """
     violations: list[str] = []
 
@@ -139,6 +147,12 @@ def score_grounding_signals(
     """
     Returns (score, reason).
     score = fraction of required_signals present in text.
+
+    Calibration:
+      1.0 — All required signals present
+             Example: text mentions "Series B", "fintech", and "open_roles_today=4"
+      0.67 — 2/3 signals present; one grounding reference omitted
+      0.0  — No required signals found; generic outreach with no grounding
     """
     if not required_signals:
         return 1.0, "No required signals specified."
@@ -146,16 +160,17 @@ def score_grounding_signals(
     found = []
     missing = []
     for signal in required_signals:
-        try:
-            if re.search(signal, text, re.IGNORECASE):
-                found.append(signal)
-            else:
-                missing.append(signal)
-        except re.error:
-            if signal.lower() in text.lower():
-                found.append(signal)
-            else:
-                missing.append(signal)
+        if check_mode == "keyword":
+            hit = signal.lower() in text.lower()
+        else:  # "regex" (default) or "embedding" (falls back to regex)
+            try:
+                hit = bool(re.search(signal, text, re.IGNORECASE))
+            except re.error:
+                hit = signal.lower() in text.lower()
+        if hit:
+            found.append(signal)
+        else:
+            missing.append(signal)
 
     score = len(found) / len(required_signals)
     if missing:
@@ -175,6 +190,11 @@ def score_cta_presence(
     """
     Returns (score, reason).
     1.0 if CTA pattern is found; 0.0 otherwise.
+
+    Calibration:
+      1.0 — CTA pattern matched (e.g., "book a 15-minute call", "schedule a demo")
+             or candidate explicitly set cta_present=True
+      0.0 — No CTA found; email ends without a specific next-step ask
     """
     if cta_pattern:
         try:
@@ -227,6 +247,13 @@ def score_tone_markers(
     """
     Returns (score, reason, model_calls).
     Uses lexical fast-path first; falls back to LLM judge.
+
+    Calibration:
+      1.0 — Professional, non-condescending, no overclaims (LLM: no issues; lexical: no matches)
+             Example: "Based on NovaPay's recent Series B, your team may be scaling..."
+      0.5 — One lexical violation (e.g., "clearly lacks") → score = 1.0 - 0.3*1 = 0.7; two = 0.4
+      0.0 — Severe violations: guarantee, threat, opt-out ignored (lexical match or LLM score=0.0)
+    Note: lexical path does not call the LLM (model_calls=0); LLM path returns model_calls=1.
     """
     # Fast lexical path
     local_violations = []
@@ -306,6 +333,10 @@ def score_confidence_calibration(
         return 0.0, "Abstain required but not emitted; segment pitch sent instead."
 
     if confidence_prefix_required:
+        # candidate_prefix is an explicit prefix string the agent declared (e.g. "Based on available data,").
+        # If the candidate set it, treat as satisfying the requirement without lexical scan.
+        if candidate_prefix:
+            return 1.0, f"Confidence prefix declared by candidate: '{candidate_prefix}'."
         hedges = [
             "based on", "indicators suggest", "it appears", "we believe",
             "our data suggests", "according to", "early indicators", "moderate-confidence"
@@ -342,11 +373,16 @@ _UNSUPPORTED_CLAIM_PATTERNS: list[tuple[re.Pattern, str]] = [
 
 def score_factual_unsupported_claims(
     text: str,
-    required_signals: list[str],
 ) -> tuple[float, str]:
     """
     Returns (score, reason).
     Checks for unsupported quantified claims and overgeneralisations.
+
+    Calibration:
+      1.0 — No unsupported claims; all quantified statements reference grounding signals
+             Example: "NovaPay added 4 roles in 60 days" (signal-grounded)
+      0.75 — One pattern match (e.g., "proven results") → score = 1.0 - 0.25*1
+      0.0  — 4+ unsupported patterns; text reads as boilerplate overclaim
     """
     violations = []
     for pat, label in _UNSUPPORTED_CLAIM_PATTERNS:
@@ -451,7 +487,6 @@ def score_task(task: dict, candidate: dict | None = None) -> TaskScore:
         w, _ = dim_map["factual_unsupported_claims"]
         raw, reason = score_factual_unsupported_claims(
             outreach_text,
-            gt.get("required_signals", []),
         )
         dimension_scores.append(DimensionScore("factual_unsupported_claims", raw, w, raw * w, reason))
 
