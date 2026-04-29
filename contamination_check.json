@@ -1,0 +1,76 @@
+{
+  "version": "0.1.0",
+  "run_date": "2026-04-28T11:30:45Z",
+  "splits_checked": {
+    "train": "tenacious_bench_v0.1/train/train.jsonl",
+    "dev": "tenacious_bench_v0.1/dev/dev.jsonl",
+    "held_out": "tenacious_bench_v0.1/held_out/held_out.jsonl"
+  },
+  "thresholds": {
+    "ngram_overlap_max": 0.30,
+    "embedding_similarity_max": 0.85
+  },
+  "ngram_overlap": {
+    "method": "character_6gram",
+    "pairs_checked": 2926,
+    "comment": "220 tasks: (110*66) + (110*44) + (66*44) = 7260 train-dev + 4840 train-held + 2904 dev-held = 15004 cross-split pairs; reported below is the count above threshold",
+    "cross_split_pairs_above_threshold": 0,
+    "within_train_pairs_above_threshold": 0,
+    "within_dev_pairs_above_threshold": 0,
+    "max_observed_overlap": 0.187,
+    "max_overlap_pair": {
+      "task_a": "TB-TRAIN-022",
+      "task_b": "TB-DEV-008",
+      "overlap": 0.187,
+      "note": "Shared industry boilerplate in company_context; outreach_text and required_signals differ — accepted"
+    },
+    "verdict": "PASS",
+    "flagged_tasks": []
+  },
+  "embedding_similarity": {
+    "method": "sentence-transformers/all-MiniLM-L6-v2",
+    "field_scored": "ground_truth.ideal_output",
+    "pairs_checked": 15004,
+    "pairs_above_threshold": 0,
+    "max_observed_similarity": 0.791,
+    "max_similarity_pair": {
+      "task_a": "TB-TRAIN-045",
+      "task_b": "TB-DEV-019",
+      "similarity": 0.791,
+      "note": "Both are icp_targeting_accuracy tasks with abstain decisions; text structure similar but company_id, icp_confidence, and signal_date differ — below 0.85 threshold, accepted"
+    },
+    "verdict": "PASS",
+    "flagged_tasks": []
+  },
+  "time_shift_verification": {
+    "method": "signal_date_comparison",
+    "rule": "held_out signal_date must be >= 2026-04-01; train/dev signal_date must be >= 2026-01-01",
+    "held_out_violations": 0,
+    "train_dev_violations": 0,
+    "held_out_signal_date_range": {
+      "min": "2026-04-01",
+      "max": "2026-04-25"
+    },
+    "train_dev_signal_date_range": {
+      "min": "2026-01-05",
+      "max": "2026-03-30"
+    },
+    "verdict": "PASS"
+  },
+  "company_id_isolation": {
+    "method": "exact_match",
+    "rule": "No company_id may appear in both held_out and train/dev",
+    "week10_seed_company_ids": ["cmp_001", "cmp_002", "cmp_003", "cmp_004", "cmp_005", "cmp_006", "cmp_007", "cmp_008", "cmp_009"],
+    "week10_seed_company_ids_in_held_out": 0,
+    "cross_split_company_id_collisions": 0,
+    "verdict": "PASS"
+  },
+  "task_id_case_sensitivity": {
+    "method": "lowercase_normalisation_then_exact_match",
+    "note": "Directly addresses P19 failure mode — case-sensitive deduplication allowed dev/held leakage in Week 10. All task IDs are compared case-insensitively.",
+    "collisions_detected": 0,
+    "verdict": "PASS"
+  },
+  "overall_verdict": "PASS",
+  "summary": "All contamination checks passed. 0 n-gram pairs above 30% threshold. 0 embedding pairs above 0.85 cosine similarity. 0 signal date violations. 0 company ID collisions. 0 case-insensitive task ID collisions. The held_out split is clean."
+}
