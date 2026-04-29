@@ -149,6 +149,41 @@ Contamination: 0 n-gram overlaps > 30 % threshold; 0 embedding pairs > 0.85 cosi
 
 ---
 
+## Major Artifacts
+
+| Artifact | Path | Description |
+|----------|------|-------------|
+| Audit Memo | [audit_memo.md](audit_memo.md) | Gap analysis vs τ²-Bench, 8 probes + 5 traces |
+| Schema | [schema.json](schema.json) | Task schema with 3 inline examples |
+| Scoring Evaluator | [scoring_evaluator.py](scoring_evaluator.py) | Executable 6-dimension scorer |
+| Methodology | [methodology.md](methodology.md) | Path B declaration + partitioning protocol |
+| Inter-Rater Agreement | [inter_rater_agreement.md](inter_rater_agreement.md) | 30-task study, κ = 0.79 |
+| Datasheet | [datasheet.md](datasheet.md) | Gebru + Data Cards (7 sections) |
+| Contamination Check | [contamination_check.json](contamination_check.json) | N-gram + embedding + time-shift results |
+| Synthesis Memo 1 | [synthesis_memos/synthetic_data_best_practices.md](synthesis_memos/synthetic_data_best_practices.md) | Disagreement with Self-Instruct generalisation |
+| Synthesis Memo 2 | [synthesis_memos/llm_as_judge_memo.md](synthesis_memos/llm_as_judge_memo.md) | Disagreement with MT-Bench LLM-judge scope |
+
+---
+
+## What's Next (Acts III + IV)
+
+**Act III — Judge Model Training**
+
+- Run all 30 probes twice (full system + degraded `no_confidence` mode) to produce (chosen, rejected) pairs
+- Merge probe pairs with 50 synthetic outreach examples labelled by GPT-4o-mini-as-judge → ~80 DPO preference pairs
+- Fine-tune a critic adapter (SimPO/ORPO via `trl`) on the train split; fall back to prompted LLM-as-judge if hardware is unavailable
+
+**Act IV — Critic Calibration and Held-Out Evaluation**
+
+- Run the trained/prompted critic on the 44-task held-out split; measure Spearman ρ against pass@1 labels
+- Target: ρ ≥ 0.65 for the judge to be considered calibrated
+- Replace `observed_behavior: "unknown"` in `probe_cases.json` with live annotated outputs
+- Produce `results/act6_judge_eval.json` closing the loop between Week 10 evaluation and Week 11 alignment
+
+**Remaining deliverables:** DPO dataset JSONL, critic calibration curve, `report_week11.md`
+
+---
+
 ## Submission Checklist
 
 - `audit_memo.md` — ≥ 8 probe IDs, ≥ 5 trace examples, ≤ 600 words
