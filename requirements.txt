@@ -1,0 +1,31 @@
+# TenaciousBench v0.1 — Runtime requirements
+# Install: pip install -r requirements.txt
+# For training dependencies: pip install -r requirements.txt -r requirements-train.txt
+
+# Core runtime
+openai>=1.30.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+rich>=13.7.0
+
+# Numerics / stats
+numpy>=1.26.0
+scipy>=1.13.0
+scikit-learn>=1.4.0
+
+# Embedding model (contamination checks, dedup)
+sentence-transformers>=2.7.0
+
+# Dataset tooling
+datasets>=2.19.0
+
+# Schema validation
+jsonschema>=4.22.0
+pydantic>=2.7.0
+
+# Notebook
+jupyter>=1.0.0
+ipykernel>=6.29.0
+matplotlib>=3.8.0
+pandas>=2.2.0
