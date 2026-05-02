@@ -1,0 +1,78 @@
+# TenaciousBench v0.1 — ORPO Training Configuration
+# Path B: Preference Optimisation via ORPO (no reference model)
+# Reference: Hong et al. 2024, "ORPO: Monolithic Preference Optimization without Reference Model"
+
+model:
+  backbone: "Qwen/Qwen2.5-7B-Instruct"
+  revision: "a09a35458c702cf38f1f18c1571a0bbe4316c3f1"  # pinned commit SHA
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+  trust_remote_code: false
+
+lora:
+  enabled: true
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  method: "orpo"           # ORPO (Hong et al. 2024) — no reference model required
+  seed: 42
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4   # effective batch size = 16
+  learning_rate: 8.0e-6
+  warmup_ratio: 0.10
+  lr_scheduler_type: "cosine"
+  max_seq_length: 1024
+  max_prompt_length: 512
+  beta: 0.1                # ORPO odds-ratio penalty weight (§3.2 default)
+  logging_steps: 10
+  eval_steps: 50
+  save_steps: 100
+  save_total_limit: 2
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  fp16: false
+  bf16: true
+  optim: "adamw_torch_fused"
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  report_to: "none"        # set to "wandb" to enable W&B logging
+  dataloader_num_workers: 0
+
+data:
+  train_file: "training_data/train_preferences.jsonl"
+  eval_file:  "training_data/dev_preferences.jsonl"
+  num_train_samples: 110
+  num_eval_samples: 66
+
+output:
+  output_dir: "training/checkpoints"
+  final_model_dir: "training/tenacious_orpo_qwen25"
+  log_dir: "training/logs"
+  train_loss_csv: "training/train_loss.csv"
+  eval_loss_csv: "training/eval_loss.csv"
+
+convergence_kill_criterion:
+  # Abort if eval_loss > 0.35 at step 100 and switch to 3-shot prompted fallback
+  check_step: 100
+  max_eval_loss_at_check: 0.35
+
+hardware:
+  # Tested on: 1× NVIDIA A100 40GB SXM4
+  # Estimated training time: ~18 minutes for 3 epochs on 110 pairs
+  gpu_memory_required_gb: 28
+  estimated_training_minutes: 18

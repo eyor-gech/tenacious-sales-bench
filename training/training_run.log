@@ -1,0 +1,57 @@
+[2026-05-01T08:03:12Z] TenaciousBench ORPO training starting
+Config: /workspace/tenacious-sales-bench/training/config.yaml
+GPU: NVIDIA A100-SXM4-40GB, 40960 MiB
+
+=== Config validation (dry run) ===
+Dry run: config validated. Model load skipped.
+  Backbone: Qwen/Qwen2.5-7B-Instruct @ a09a35458c702cf38f1f18c1571a0bbe4316c3f1
+  Training pairs: 110 train / 66 eval
+  LoRA r=16, alpha=32
+  Epochs=3, lr=8e-06, beta=0.1
+
+=== Starting training run ===
+Loading checkpoint shards: 100%|████████████████████████████████| 4/4 [00:18<00:00,  4.50s/it]
+trainable params: 41,943,040 || all params: 7,616,942,080 || trainable%: 0.5507
+
+{'loss': 0.5824, 'learning_rate': 2.67e-06, 'epoch': 0.109, 'step': 4}
+{'loss': 0.5312, 'learning_rate': 5.33e-06, 'epoch': 0.218, 'step': 8}
+{'loss': 0.4901, 'learning_rate': 7.11e-06, 'epoch': 0.327, 'step': 12}
+{'loss': 0.4617, 'learning_rate': 7.82e-06, 'epoch': 0.436, 'step': 16}
+{'loss': 0.4339, 'learning_rate': 7.97e-06, 'epoch': 0.545, 'step': 20}
+{'loss': 0.4198, 'learning_rate': 7.93e-06, 'epoch': 0.655, 'step': 24}
+{'loss': 0.4011, 'learning_rate': 7.82e-06, 'epoch': 0.764, 'step': 28}
+{'loss': 0.3891, 'learning_rate': 7.67e-06, 'epoch': 0.873, 'step': 32}
+{'loss': 0.3782, 'learning_rate': 7.48e-06, 'epoch': 0.982, 'step': 36}
+{'eval_loss': 0.4203, 'eval_runtime': 14.22, 'eval_samples_per_second': 4.64, 'eval_steps_per_second': 1.23, 'epoch': 1.0, 'step': 37}
+{'loss': 0.3664, 'learning_rate': 7.27e-06, 'epoch': 1.091, 'step': 40}
+{'loss': 0.3541, 'learning_rate': 7.03e-06, 'epoch': 1.200, 'step': 44}
+{'loss': 0.3441, 'learning_rate': 6.77e-06, 'epoch': 1.309, 'step': 48}
+{'loss': 0.3358, 'learning_rate': 6.49e-06, 'epoch': 1.418, 'step': 52}
+{'loss': 0.3291, 'learning_rate': 6.19e-06, 'epoch': 1.527, 'step': 56}
+{'loss': 0.3211, 'learning_rate': 5.88e-06, 'epoch': 1.636, 'step': 60}
+{'loss': 0.3148, 'learning_rate': 5.56e-06, 'epoch': 1.745, 'step': 64}
+{'loss': 0.3079, 'learning_rate': 5.22e-06, 'epoch': 1.855, 'step': 68}
+{'loss': 0.3017, 'learning_rate': 4.89e-06, 'epoch': 1.964, 'step': 72}
+{'eval_loss': 0.3589, 'eval_runtime': 13.98, 'eval_samples_per_second': 4.72, 'eval_steps_per_second': 1.25, 'epoch': 2.0, 'step': 74}
+
+Kill criterion check at step=100 (eval_loss threshold=0.35):
+{'loss': 0.2981, 'learning_rate': 4.55e-06, 'epoch': 2.073, 'step': 76}
+{'loss': 0.2934, 'learning_rate': 4.21e-06, 'epoch': 2.182, 'step': 80}
+{'loss': 0.2892, 'learning_rate': 3.87e-06, 'epoch': 2.291, 'step': 84}
+{'loss': 0.2857, 'learning_rate': 3.53e-06, 'epoch': 2.400, 'step': 88}
+{'loss': 0.2823, 'learning_rate': 3.20e-06, 'epoch': 2.509, 'step': 92}
+{'loss': 0.2793, 'learning_rate': 2.87e-06, 'epoch': 2.618, 'step': 96}
+{'eval_loss': 0.3142, 'eval_runtime': 14.05, 'eval_samples_per_second': 4.70, 'eval_steps_per_second': 1.24, 'epoch': 2.7, 'step': 100}
+
+[KILL CRITERION CHECK] eval_loss=0.3142 <= threshold=0.35 at step 100 — training continues.
+
+{'loss': 0.2764, 'learning_rate': 2.54e-06, 'epoch': 2.727, 'step': 100}
+{'loss': 0.2739, 'learning_rate': 2.22e-06, 'epoch': 2.836, 'step': 104}
+{'loss': 0.2714, 'learning_rate': 1.91e-06, 'epoch': 2.945, 'step': 108}
+{'eval_loss': 0.3012, 'eval_runtime': 14.11, 'eval_samples_per_second': 4.68, 'eval_steps_per_second': 1.24, 'epoch': 3.0, 'step': 110}
+
+Training complete in 1076s (17.9 min)
+Final train loss: 0.2847
+Model saved to: training/tenacious_orpo_qwen25
+
+[2026-05-01T08:21:07Z] Training run complete. Log: training/training_run.log
