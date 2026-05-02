@@ -1,0 +1,19 @@
+timestamp,bucket,cost_usd,purpose,model,tokens_in,tokens_out
+2026-04-24T17:45:51Z,week10_act1_dev_eval,0.005076,Act I — 30-task dev evaluation,openai/gpt-4o-mini,18306,15600
+2026-04-24T17:50:57Z,week10_act4_heldout_eval,0.004580,Act IV — 20-task held-out evaluation,openai/gpt-4o-mini,13302,9720
+2026-04-24T17:52:10Z,week10_act4_ablation,0.001374,Act IV — 3-mode ablation x 20 tasks,openai/gpt-4o-mini,5580,3360
+2026-04-24T18:01:33Z,week10_act2_enrichment,0.000229,Act II — NileLedger enrichment + outreach run,openai/gpt-4o-mini,610,820
+2026-04-24T18:05:44Z,week10_act3_probes,0.003450,Act III — 30 adversarial probe runs,openai/gpt-4o-mini,12000,9200
+2026-04-28T09:15:00Z,week11_task_generation_programmatic,0.000000,Programmatic task generation (local templates),none,0,0
+2026-04-28T09:45:22Z,week11_task_generation_multi_llm,0.006900,Multi-LLM synthesis — 69 draft tasks x 2 passes,openai/gpt-4o-mini,28560,18900
+2026-04-28T10:30:11Z,week11_judge_filter,0.001380,Judge filter — 69 tasks x quality gate,openai/gpt-4o-mini,9660,3600
+2026-04-28T11:00:00Z,week11_dedup_embedding,0.000000,Deduplication — local sentence-transformers,none,0,0
+2026-04-28T11:30:45Z,week11_contamination_check,0.000000,Contamination check — local sentence-transformers,none,0,0
+2026-04-28T13:00:00Z,week11_ira_rater_a,0.000000,IRA — Rater A (human; no LLM),human,0,0
+2026-04-28T13:45:00Z,week11_ira_rater_b,0.000000,IRA — Rater B (human; no LLM),human,0,0
+2026-04-28T14:30:22Z,week11_scorer_test_run,0.000230,Scorer validation — 10 tasks x tone judge,openai/gpt-4o-mini,1200,600
+2026-04-29T09:00:00Z,week11_documentation,0.000000,Documentation (human-authored),human,0,0
+2026-04-29T10:00:00Z,week11_examples_run,0.000036,Examples run — 3 tasks x tone judge,openai/gpt-4o-mini,360,180
+2026-05-01T08:03:12Z,week11_orpo_training,1.380000,ORPO training — 3 epochs A100 40GB 17.9 min ($4.60/hr),gpu,0,0
+2026-05-02T09:15:00Z,week11_ablation_delta_a_heldout,0.003916,Delta A held-out eval — 44 tasks x tone judge,openai/gpt-4o-mini,21428,6292
+2026-05-02T09:28:00Z,week11_ablation_delta_b_heldout,0.009372,Delta B held-out eval — 44 tasks x 8-shot prompt,openai/gpt-4o-mini,47608,6644
