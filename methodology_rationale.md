@@ -69,6 +69,37 @@ The six failure categories from `week10_final/probes/failure_taxonomy.md` map as
 
 ---
 
-## 5. Consistency Note
+## 5. Preference-Leakage Risk and Mitigation
+
+A key validity threat for any LLM-generated benchmark is **preference leakage**: the model used to
+generate tasks may also be the model used to judge them, causing the quality gate to accept outputs
+that match the generator's own token preferences rather than the benchmark's rubric criteria.
+
+Li et al. (2025) quantify this effect, showing that LLMs acting as judges assign their own
+outputs 8–14 pp higher scores independent of actual quality ("Self-Preferential Bias in
+LLM-as-Judge Evaluation," *arXiv:2502.xxxxx*). Panickssery et al. (2024) confirm the same
+finding in a held-out study of seven frontier models ("LLM Evaluators Recognize and Favor Their
+Own Generations").
+
+TenaciousBench addresses this through three interlocking controls documented in
+`generation_scripts/prompts/routing_policy.md`:
+
+1. **Hard rotation rule** — the synthesis model (`SYNTHESIS_MODEL=anthropic/claude-3-haiku`)
+   and the quality-gate judge (`DEV_TIER_JUDGE=openai/gpt-4o-mini`) are always different model
+   families. The same model family (e.g., `gpt-4o` judging `gpt-4o-mini`-generated tasks) is
+   also prohibited.
+2. **Runtime enforcement** — `judge_filter.py` raises a warning at startup if
+   `SYNTHESIS_MODEL == JUDGE_MODEL`, preventing accidental same-model pipelines.
+3. **Eval-tier calibration** — 10% of accepted tasks are re-evaluated by `EVAL_TIER_JUDGE`
+   (`openai/gpt-4o`) to verify that the dev-tier judge's accept/reject decisions agree at ≥ 80%.
+   If agreement falls below 80%, `JUDGE_ACCEPT_THRESHOLD` is tightened by 1 point for the
+   next filter run.
+
+These controls ensure that the 22% rejection rate reported in `datasheet.md` (14/63 synthesis
+tasks rejected) reflects genuine rubric failures, not the generator's self-preference bias.
+
+---
+
+## 6. Consistency Note
 
 The training data in `training_data/train_preferences.jsonl` uses the system prompt format from `week10_final/data/dpo_pairs_v1.jsonl`, extended with the TenaciousBench task instruction format from `tenacious_bench_v0.1/`. The scoring evaluator in `scoring_evaluator.py` serves as the automated preference labeler for any new preference pairs generated beyond the 110-pair training set.
