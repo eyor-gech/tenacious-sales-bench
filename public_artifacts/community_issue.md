@@ -26,13 +26,13 @@ TenaciousBench v0.1 is a 220-task evaluation benchmark for LLM-based B2B outboun
 ## Benchmark Resources
 
 - **Dataset:** [https://huggingface.co/datasets/eyorg/tenacious_bench_v0.1](https://huggingface.co/datasets/eyorg/tenacious_bench_v0.1)
-- **Code + evaluator:** [https://github.com/eyorg/tenacious-sales-bench](https://github.com/eyorg/tenacious-sales-bench)
+- **Code + evaluator:** [https://github.com/eyor-gech/tenacious-sales-bench](https://github.com/eyor-gech/tenacious-sales-bench)
 - **Blog post:** [We Built a Benchmark for B2B Outreach AI](public_artifacts/blog_post.md)
 
 ## How to Evaluate Your System
 
 ```bash
-git clone https://github.com/eyorg/tenacious-sales-bench
+git clone https://github.com/eyor-gech/tenacious-sales-bench
 cd tenacious-sales-bench
 pip install -r requirements.txt
 cp .env.example .env  # add your OPENROUTER_API_KEY

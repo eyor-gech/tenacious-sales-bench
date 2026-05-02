@@ -83,6 +83,6 @@ The dataset is on HuggingFace at [https://huggingface.co/datasets/eyorg/tenaciou
 
 ---
 
-*Code: [github.com/eyorg/tenacious-sales-bench](https://github.com/eyorg/tenacious-sales-bench)*  
+*Code: [github.com/eyorg/tenacious-sales-bench](https://github.com/eyor-gech/tenacious-sales-bench)*  
 *Dataset: [huggingface.co/datasets/eyorg/tenacious_bench_v0.1](https://huggingface.co/datasets/eyorg/tenacious_bench_v0.1)*  
 *10 Academy Week 11 Final Submission*

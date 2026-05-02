@@ -118,7 +118,7 @@ print(tokenizer.decode(output[0], skip_special_tokens=True))
 
 For full evaluation with the TenaciousBench scoring rubric:
 ```bash
-git clone https://github.com/eyorg/tenacious-sales-bench
+git clone https://github.com/eyor-gech/tenacious-sales-bench
 cd tenacious-sales-bench
 pip install -r requirements.txt
 python examples/run_examples.py
@@ -156,4 +156,4 @@ Training used a convergence kill criterion: if `eval_loss > 0.35` at step 100, t
 
 ## License
 
-MIT — see [LICENSE](https://github.com/eyorg/tenacious-sales-bench/blob/main/LICENSE).
+MIT — see [LICENSE](https://github.com/eyor-gech/tenacious-sales-bench/blob/main/LICENSE).
