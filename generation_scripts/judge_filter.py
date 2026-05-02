@@ -29,17 +29,30 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "openai/gpt-4o-mini")
 SYNTHESIS_MODEL = os.getenv("SYNTHESIS_MODEL", "openai/gpt-4o-mini")
 
-# Guard: generation model and judge model must differ to prevent preference leakage.
-# See generation_scripts/prompts/routing_policy.md for the full rotation policy.
-if SYNTHESIS_MODEL == JUDGE_MODEL and OPENROUTER_API_KEY:
+# Two-tier judge separation (see generation_scripts/prompts/routing_policy.md § "Cheap vs Eval-Tier").
+# DEV_TIER_JUDGE  — cheap model used for bulk filtering of all tasks (~95% of LLM calls).
+# EVAL_TIER_JUDGE — stronger model used on a random calibration subsample (~10% of accepted tasks)
+#                   to verify that the dev-tier judge's accept/reject decisions are well-calibrated.
+#                   If calibration agreement < CALIBRATION_MIN_AGREEMENT the threshold is flagged.
+DEV_TIER_JUDGE = os.getenv("DEV_TIER_JUDGE", "openai/gpt-4o-mini")
+EVAL_TIER_JUDGE = os.getenv("EVAL_TIER_JUDGE", "openai/gpt-4o")
+CALIBRATION_SAMPLE_RATE = float(os.getenv("CALIBRATION_SAMPLE_RATE", "0.10"))
+CALIBRATION_MIN_AGREEMENT = float(os.getenv("CALIBRATION_MIN_AGREEMENT", "0.80"))
+
+# Legacy alias kept for backward compatibility with existing .env files.
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", DEV_TIER_JUDGE)
+
+# Guard: generation model and dev-tier judge must differ to prevent preference leakage.
+# Li et al. (2025) show self-preferential bias inflates judge scores by 8-14 pp when the
+# same model generates and evaluates. See routing_policy.md for full policy.
+if SYNTHESIS_MODEL == DEV_TIER_JUDGE and OPENROUTER_API_KEY:
     import warnings
     warnings.warn(
-        f"SYNTHESIS_MODEL ({SYNTHESIS_MODEL}) == JUDGE_MODEL ({JUDGE_MODEL}). "
-        "This allows a single model to generate and judge the same task, risking preference leakage. "
-        "Set SYNTHESIS_MODEL=anthropic/claude-3-haiku in .env to enforce rotation.",
+        f"SYNTHESIS_MODEL ({SYNTHESIS_MODEL}) == DEV_TIER_JUDGE ({DEV_TIER_JUDGE}). "
+        "This allows a single model to generate and judge the same task, risking preference leakage "
+        "(Li et al., 2025). Set SYNTHESIS_MODEL=anthropic/claude-3-haiku in .env to enforce rotation.",
         stacklevel=2,
     )
 
@@ -256,11 +269,73 @@ def check_difficulty_calibration(
     return difficulty, oracle_score
 
 
+def calibration_check(
+    accepted_tasks: list[dict],
+    api_key: str,
+    sample_rate: float = CALIBRATION_SAMPLE_RATE,
+    min_agreement: float = CALIBRATION_MIN_AGREEMENT,
+) -> dict:
+    """
+    Eval-tier calibration: re-run check_llm_quality() on a random sample of
+    accepted tasks using EVAL_TIER_JUDGE, then compare accept/reject decisions
+    with the dev-tier result (all sampled tasks were already accepted).
+
+    Returns a dict with: sample_n, agreements, agreement_rate, threshold_ok.
+    If agreement_rate < min_agreement, threshold_ok=False — caller should raise
+    JUDGE_ACCEPT_THRESHOLD for the next filter run.
+    """
+    if not api_key or not accepted_tasks:
+        return {"sample_n": 0, "agreements": 0, "agreement_rate": 1.0, "threshold_ok": True,
+                "note": "Skipped (no API key or no accepted tasks)"}
+
+    import random
+    rng = random.Random(42)
+    sample_n = max(1, int(len(accepted_tasks) * sample_rate))
+    sample = rng.sample(accepted_tasks, min(sample_n, len(accepted_tasks)))
+
+    agreements = 0
+    details = []
+    for task in sample:
+        # Dev-tier already accepted this task; eval-tier verdict is ground truth.
+        eval_ok, eval_reason, _ = check_llm_quality(task, api_key, EVAL_TIER_JUDGE)
+        agreed = eval_ok  # dev-tier said accept; agreement if eval-tier also accepts
+        if agreed:
+            agreements += 1
+        details.append({
+            "task_id": task.get("task_id"),
+            "eval_tier_accept": eval_ok,
+            "eval_tier_reason": eval_reason[:120],
+        })
+
+    agreement_rate = agreements / len(sample) if sample else 1.0
+    threshold_ok = agreement_rate >= min_agreement
+    result = {
+        "sample_n": len(sample),
+        "agreements": agreements,
+        "agreement_rate": round(agreement_rate, 4),
+        "threshold_ok": threshold_ok,
+        "eval_tier_model": EVAL_TIER_JUDGE,
+        "dev_tier_model": DEV_TIER_JUDGE,
+        "details": details,
+    }
+    if not threshold_ok:
+        print(
+            f"\n[CALIBRATION] Dev-tier / eval-tier agreement={agreement_rate:.1%} < "
+            f"{min_agreement:.0%} threshold. Consider raising JUDGE_ACCEPT_THRESHOLD by 1.",
+            file=sys.stderr,
+        )
+    else:
+        print(f"\n[CALIBRATION] Dev/eval-tier agreement={agreement_rate:.1%} on "
+              f"{len(sample)}/{len(accepted_tasks)} sampled tasks. threshold_ok={threshold_ok}")
+    return result
+
+
 def run_filter(
     in_dir: Path,
     out_dir: Path,
     log_path: Path | None = None,
     easy_cap: float = EASY_ORACLE_CAP,
+    run_calibration: bool = True,
 ) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -306,8 +381,8 @@ def run_filter(
                 stats["rejected_tasks"].append({"task_id": task.get("task_id"), "stage": "rubric", "reason": reason})
                 continue
 
-            # Stage 3
-            ok, reason, calls = check_llm_quality(task, OPENROUTER_API_KEY, JUDGE_MODEL)
+            # Stage 3 — bulk filter with dev-tier judge (cheap; all tasks)
+            ok, reason, calls = check_llm_quality(task, OPENROUTER_API_KEY, DEV_TIER_JUDGE)
             stats["model_calls"] += calls
             if not ok:
                 stats["rejected_llm"] += 1
@@ -343,7 +418,17 @@ def run_filter(
         with out_file.open("w", encoding="utf-8") as fh:
             for t in out_tasks:
                 fh.write(json.dumps(t) + "\n")
-        print(f"{in_file.name}: {len(tasks)} in → {len(out_tasks)} out")
+        print(f"{in_file.name}: {len(tasks)} in -> {len(out_tasks)} out")
+
+    # Stage 5 — eval-tier calibration on a random sample of accepted tasks.
+    # Uses EVAL_TIER_JUDGE (stronger model) to verify dev-tier accept/reject alignment.
+    all_accepted = [t for tasks in accepted_by_file.values() for t in tasks]
+    if run_calibration and all_accepted:
+        cal = calibration_check(all_accepted, OPENROUTER_API_KEY)
+        stats["calibration"] = cal
+        stats["model_calls"] += cal.get("sample_n", 0)  # one call per sampled task
+    else:
+        stats["calibration"] = {"note": "Calibration skipped (run_calibration=False or no accepted tasks)"}
 
     if log_path:
         log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -351,7 +436,7 @@ def run_filter(
             json.dump(stats, fh, indent=2)
 
     print(f"\nFilter summary: {stats['passed']}/{stats['total_input']} accepted "
-          f"({stats['model_calls']} LLM calls)")
+          f"({stats['model_calls']} LLM calls, dev_tier={DEV_TIER_JUDGE}, eval_tier={EVAL_TIER_JUDGE})")
     return stats
 
 
@@ -361,9 +446,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out-dir", type=Path, default=Path("tenacious_bench_v0.1/filtered"))
     p.add_argument("--log", type=Path, default=None, help="Write filter statistics to JSON")
     p.add_argument("--easy-cap", type=float, default=0.20)
+    p.add_argument("--no-calibration", action="store_true",
+                   help="Skip eval-tier calibration subsample (faster, no gpt-4o calls)")
     args = p.parse_args(argv)
 
-    stats = run_filter(args.in_dir, args.out_dir, args.log, args.easy_cap)
+    stats = run_filter(args.in_dir, args.out_dir, args.log, args.easy_cap,
+                       run_calibration=not args.no_calibration)
     return 0 if stats.get("passed", 0) > 0 else 1
 
 
