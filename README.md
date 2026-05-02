@@ -201,13 +201,13 @@ python ablations/bootstrap_stats.py
 
 ## Blog Post
 
-[public_artifacts/blog_post.md](public_artifacts/blog_post.md)
+[blog_post](https://substack.com/@eyorg/note/c-252560630?utm_source=notes-share-action&r=8bsd3y)
 
 ---
 
 ## Community Contribution
 
-[public_artifacts/community_issue.md](public_artifacts/community_issue.md)
+[community_issue](https://github.com/sierra-research/tau2-bench/issues/286)
 
 ---
 
