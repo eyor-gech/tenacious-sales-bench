@@ -8,7 +8,7 @@
     "scoring_type": "rubric_5pt",
     "probe_ref": "P01"
   },
-  "source_mode": "hand_authored_adversarial",
+  "source_mode": "programmatic",
   "difficulty": "hard",
   "input": {
     "company_context": {
