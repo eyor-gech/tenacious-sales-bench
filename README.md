@@ -1,31 +1,28 @@
-# TenaciousBench v0.1 — Week 11 Interim Submission
+# TenaciousBench v0.1
 
-**Author:** Eyor Getachew  
-**Benchmark version:** v0.1 (Acts I + II covered)  
-**Week 10 baseline:** dev pass@1 = 53.33 % · held-out pass@1 = 85 % · Δ = +33.67 pp (p = 0.0001)
+**A 220-task evaluation benchmark for B2B outbound sales agents.**  
+Measures ten failure dimensions that no existing benchmark covers: ICP abstention accuracy,
+confidence-aware phrasing, signal grounding fidelity, tone safety, hallucination avoidance,
+CTA behavior, competitor gap reasoning, pricing discipline, multi-turn objection handling,
+and thread continuation coherence.
 
 ---
 
-## What This Is
+## Current Status
 
-TenaciousBench is a purpose-built evaluation benchmark for **B2B outbound sales agents**.  
-It targets the ten failure dimensions that generic τ²-Bench retail tasks cannot surface. These are signal hallucination, confidence mis-calibration, consent-violating SMS routing, brand-harmful tone, ICP boundary leakage, and five others documented in the Week 10 adversarial probe library.
+| Component | Status | Details |
+|-----------|--------|---------|
+| Dataset (220 tasks) | Complete | `tenacious_bench_v0.1/{train,dev,held_out}/` |
+| Scoring evaluator | Complete | `scoring_evaluator.py` — 6 dimensions, executable |
+| ORPO training | Complete | `training/` — Qwen2.5-7B, LoRA r=16, 17.9 min |
+| Ablation harness | Complete | `ablations/` — Delta A/B/C + bootstrap stats |
+| Preference pairs | Complete | `training_data/` — 110 train + 66 dev JSONL pairs |
+| Evidence graph | Complete | `evidence_graph.json` — all claims sourced |
+| Public artifacts | Complete | `public_artifacts/` — blog, dataset card, community |
 
-The interim package (Acts I + II) covers:
-
-| Act | Deliverable | Status |
-|-----|-------------|--------|
-| I   | Audit + gap analysis (`audit_memo.md`) | complete |
-| I   | Schema design (`schema.json`) | complete |
-| I   | Dataset authoring — 220 tasks (`tenacious_bench_v0.1/`) | complete |
-| I   | Partitioning: train / dev / held_out | complete |
-| I   | Datasheet (`datasheet.md`) | complete |
-| I   | Contamination checks (`contamination_check.json`) | complete |
-| II  | Methodology (`methodology.md`) | complete |
-| II  | Inter-rater agreement (`inter_rater_agreement.md`) | complete |
-| II  | Generation scripts (`generation_scripts/`) | complete |
-| II  | Synthesis memos (`synthesis_memos/`) | complete |
-| II  | Scoring evaluator (`scoring_evaluator.py`) | complete |
+**Headline result:** ORPO-trained Qwen2.5-7B achieves **90.9% pass@1** (40/44 tasks) on the held-out split,
++6.8 pp over the Week 10 baseline (84.1%, 37/44). Effect is directionally positive across all 10
+dimensions; n=44 is underpowered for formal significance (p=0.1953, 95% CI [−6.8, +20.4] pp).
 
 ---
 
@@ -33,169 +30,201 @@ The interim package (Acts I + II) covers:
 
 ```
 tenacious-sales-bench/
-├── README.md                          ← this file
-├── audit_memo.md                      ← gap analysis vs τ²-Bench
-├── schema.json                        ← machine-readable task schema + 3 examples
-├── scoring_evaluator.py               ← executable Python scorer
-├── methodology.md                     ← path declaration + design rationale
-├── inter_rater_agreement.md           ← 30-task dual-label study, Cohen's κ
-├── datasheet.md                       ← Gebru + Data Cards format
-├── contamination_check.json           ← n-gram + embedding dedup results
-├── cost_log.csv                       ← per-run cost accounting
-├── .env.example                       ← env var template
-├── pyproject.toml                     ← UV-ready project manifest
-│
 ├── tenacious_bench_v0.1/
-│   ├── train/
-│   │   └── train.jsonl                ← 110 tasks
-│   ├── dev/
-│   │   └── dev.jsonl                  ← 66 tasks
-│   └── held_out/
-│       └── held_out.jsonl             ← 44 tasks
+│   ├── train/train.jsonl          # 110 tasks (50%)
+│   ├── dev/dev.jsonl              # 66 tasks (30%)
+│   └── held_out/held_out.jsonl    # 44 tasks (20%) — sealed test set
 │
-├── generation_scripts/
-│   ├── build_tasks.py                 ← task authoring driver
-│   ├── judge_filter.py                ← LLM-as-judge quality gate
-│   ├── dedup.py                       ← n-gram + embedding deduplication
-│   ├── partition.py                   ← stratified train/dev/held_out split
-│   └── contamination_check.py        ← overlap + time-shift verification
+├── training_data/
+│   ├── train_preferences.jsonl    # 110 (chosen, rejected) ORPO pairs
+│   ├── dev_preferences.jsonl      # 66 (chosen, rejected) ORPO pairs
+│   ├── generate_preferences.py    # Regenerate pairs from benchmark tasks
+│   └── schema.md                  # Preference pair field definitions
 │
-├── synthesis_memos/
-│   ├── synthetic_data_best_practices.md
-│   └── llm_as_judge_memo.md
+├── training/
+│   ├── train.py                   # ORPO training script (TRL ORPOTrainer)
+│   ├── config.yaml                # All hyperparameters, pinned backbone revision
+│   ├── run_training.sh            # Launcher
+│   ├── training_run.log           # Actual training log
+│   ├── train_loss.csv             # Per-step training loss
+│   └── eval_loss.csv              # Per-checkpoint eval loss
 │
-└── week10_final/                      ← Week 10 source artifacts (read-only)
-    ├── results/
-    ├── probes/
-    ├── source/
-    └── reports/
+├── ablations/
+│   ├── run_ablation.py            # CLI harness (--mode delta_a/b/c/all)
+│   ├── bootstrap_stats.py         # Paired bootstrap CI + p-value
+│   ├── cost_metrics.py            # Per-task cost/latency Pareto table
+│   ├── ablation_results.json      # All ablation results with CIs
+│   └── held_out_traces.jsonl      # Week 10 held-out agent traces
+│
+├── scoring_evaluator.py           # 6-dimension scorer; runnable standalone
+├── schema.json                    # Task JSON schema with 3 inline examples
+├── methodology_rationale.md       # Path B declaration + evidence + papers
+├── methodology.md                 # Full benchmark design methodology
+├── datasheet.md                   # Gebru 2018 + Data Cards datasheet
+├── inter_rater_agreement.md       # 30-task IRA study, kappa 0.72 to 0.79
+├── audit_memo.md                  # Gap analysis with 7 trace references
+├── contamination_check.json       # 5 contamination checks, all PASS
+├── evidence_graph.json            # Every numeric claim mapped to source
+│
+├── generation_scripts/            # Task generation pipeline
+├── examples/                      # 3 concrete scored examples + runner
+├── public_artifacts/              # Blog, dataset card, community issue
+├── synthesis_memos/               # LLM-as-judge and synthetic data memos
+├── week10_final/                  # Week 10 source evidence
+│
+├── cost_log_final.csv             # Full cost log including training
+├── requirements.txt               # Runtime dependencies
+├── pyproject.toml                 # UV/hatchling build config
+├── LICENSE                        # MIT
+└── final_submission_checklist.md  # Submission status
 ```
 
 ---
 
-## Quick Start
+## Install
 
 ```bash
-# 1. Create virtual environment with UV
-uv venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+git clone https://github.com/eyor-gech/tenacious-sales-bench
+cd tenacious-sales-bench
 
-# 2. Install dependencies
-uv pip install -e ".[dev]"
+# UV recommended
+uv venv && source .venv/bin/activate   # Linux/Mac
+uv venv && .venv\Scripts\activate      # Windows
 
-# 3. Configure environment
-cp .env.example .env
-# → Edit .env: set OPENROUTER_API_KEY
-
-# 4. Run the scorer on a single task
-python scoring_evaluator.py --task tenacious_bench_v0.1/dev/dev.jsonl --task-id TB-DEV-001
-
-# 5. Run contamination check
-python generation_scripts/contamination_check.py \
-    --train tenacious_bench_v0.1/train/train.jsonl \
-    --dev   tenacious_bench_v0.1/dev/dev.jsonl \
-    --held  tenacious_bench_v0.1/held_out/held_out.jsonl \
-    --out   contamination_check.json
-
-# 6. Rebuild full dataset from scratch (requires OPENROUTER_API_KEY)
-python generation_scripts/build_tasks.py --out-dir tenacious_bench_v0.1/raw
-python generation_scripts/judge_filter.py --in-dir tenacious_bench_v0.1/raw --out-dir tenacious_bench_v0.1/filtered
-python generation_scripts/dedup.py --in-dir tenacious_bench_v0.1/filtered --out tenacious_bench_v0.1/deduped.jsonl
-python generation_scripts/partition.py --in tenacious_bench_v0.1/deduped.jsonl --out-dir tenacious_bench_v0.1
+pip install -r requirements.txt
+cp .env.example .env  # add OPENROUTER_API_KEY
 ```
 
 ---
 
-## Week 11 Path Recommendation
+## Reproduce Headline Result
 
-**Path B — Judge/Critic via DPO / SimPO / ORPO** is the analytically correct choice.
+### 1. Run end-to-end examples (no API key needed for 2/3 tasks)
 
-Evidence from Week 10:
+```bash
+python examples/run_examples.py
+# TB-EX-001 PASS 0.872 | TB-EX-002 PASS 1.000 | TB-EX-003 FAIL 0.315
+```
 
-1. **Ablation ordered preference**: `confidence_aware` (0.76) > `binary_threshold` (0.70) > `no_confidence` (0.66). This is a ready-made ranked preference signal.
-2. **30 probe (chosen, rejected) triples** from `probe_cases.json` are structurally identical to DPO training pairs.
-3. **6-category failure taxonomy** provides the critic's label schema without additional annotation overhead.
-4. **+33.67 pp delta (p = 0.0001)** from the held-out evaluation validates that the confidence-aware variant is the ground-truth "chosen" output, i.e. the DPO positive class.
+### 2. Regenerate all 220 benchmark tasks (deterministic, no LLM calls)
 
-Path A (SFT) is blocked by insufficient volume (17 passing held-out traces).  
-Path C (PRM) requires step-level quality annotations that do not yet exist.
+```bash
+python generation_scripts/_generate_all_tasks.py
+```
 
----
+### 3. Score the dev split
 
-## Dataset Statistics
+```bash
+python scoring_evaluator.py \
+  --batch-dir tenacious_bench_v0.1/dev \
+  --out results/dev_scores.jsonl
+```
 
-| Split | Tasks | Source mode mix | Dimensions covered |
-|-------|-------|-----------------|-------------------|
-| train | 110 | trace 30% / prog 30% / synth 25% / adversarial 15% | all 10 |
-| dev | 66 | trace 30% / prog 30% / synth 25% / adversarial 15% | all 10 |
-| held_out | 44 | trace 30% / prog 30% / synth 25% / adversarial 15% | all 10 |
-| **total** | **220** | | |
+### 4. Run ablations
 
-Contamination: 0 n-gram overlaps > 30 % threshold; 0 embedding pairs > 0.85 cosine similarity between held_out and train+dev.
-
----
-
-## Key Results (Week 10 Seed Evidence)
-
-| Metric | Value | Source |
-|--------|-------|--------|
-| Dev pass@1 | 53.33 % | `week10_final/results/act1_score.json` |
-| Held-out pass@1 | 85.00 % | `week10_final/results/act4_heldout_summary.json` |
-| Δ (held-out − dev) | +33.67 pp | `week10_final/results/act5_evidence_graph.json` |
-| Bootstrap p-value | 0.0001 | 10 k resamples |
-| Cost / task | $0.000229 | `week10_final/results/act4_invoice_summary.json` |
-| Probe trigger rate | 30/30 (100 %) | `week10_final/results/act3_probe_results.json` |
-| Ablation winner | confidence_aware (0.76) | `week10_final/results/act4_ablation_results.json` |
+```bash
+python ablations/run_ablation.py --mode all
+python ablations/bootstrap_stats.py
+python ablations/run_ablation.py --mode cost_pareto
+```
 
 ---
 
-## Major Artifacts
+## Run Training
 
-| Artifact | Path | Description |
-|----------|------|-------------|
-| Audit Memo | [audit_memo.md](audit_memo.md) | Gap analysis vs τ²-Bench, 8 probes + 5 traces |
-| Schema | [schema.json](schema.json) | Task schema with 3 inline examples |
-| Scoring Evaluator | [scoring_evaluator.py](scoring_evaluator.py) | Executable 6-dimension scorer |
-| Methodology | [methodology.md](methodology.md) | Path B declaration + partitioning protocol |
-| Inter-Rater Agreement | [inter_rater_agreement.md](inter_rater_agreement.md) | 30-task study, κ = 0.79 |
-| Datasheet | [datasheet.md](datasheet.md) | Gebru + Data Cards (7 sections) |
-| Contamination Check | [contamination_check.json](contamination_check.json) | N-gram + embedding + time-shift results |
-| Synthesis Memo 1 | [synthesis_memos/synthetic_data_best_practices.md](synthesis_memos/synthetic_data_best_practices.md) | Disagreement with Self-Instruct generalisation |
-| Synthesis Memo 2 | [synthesis_memos/llm_as_judge_memo.md](synthesis_memos/llm_as_judge_memo.md) | Disagreement with MT-Bench LLM-judge scope |
+Requires CUDA GPU with 28 GB+ VRAM. Tested: A100 40 GB (~18 minutes).
+
+```bash
+# Install training deps
+pip install trl>=0.8.6 transformers>=4.40.0 accelerate>=0.29.0 bitsandbytes>=0.43.0 peft>=0.10.0
+
+# Regenerate preference pairs (already committed; run to reproduce from scratch)
+python training_data/generate_preferences.py
+
+# Dry run to validate config
+python training/train.py --config training/config.yaml --dry-run
+
+# Full training
+bash training/run_training.sh
+```
+
+**Key hyperparameters** (full spec in `training/config.yaml`):
+
+| Parameter | Value |
+|---|---|
+| Backbone | `Qwen/Qwen2.5-7B-Instruct` @ `a09a35458c` |
+| Method | ORPO (Hong et al. 2024) |
+| LoRA r / alpha | 16 / 32 |
+| Learning rate | 8e-6 |
+| Effective batch | 16 (4 x 4 grad accum) |
+| Epochs | 3 |
+| Warmup | 10% cosine |
+| Max seq len | 1024 |
+| ORPO beta | 0.1 |
 
 ---
 
-## What's Next (Acts III + IV)
+## Run Ablations
 
-**Act III — Judge Model Training**
+```bash
+python ablations/run_ablation.py --mode delta_a    # ORPO vs baseline
+python ablations/run_ablation.py --mode delta_b    # prompt-only vs baseline
+python ablations/run_ablation.py --mode delta_c    # tau2-Bench reference
+python ablations/run_ablation.py --mode cost_pareto
+python ablations/bootstrap_stats.py
+```
 
-- Run all 30 probes twice (full system + degraded `no_confidence` mode) to produce (chosen, rejected) pairs
-- Merge probe pairs with 50 synthetic outreach examples labelled by GPT-4o-mini-as-judge → ~80 DPO preference pairs
-- Fine-tune a critic adapter (SimPO/ORPO via `trl`) on the train split; fall back to prompted LLM-as-judge if hardware is unavailable
+**Results:**
 
-**Act IV — Critic Calibration and Held-Out Evaluation**
+| Variant | pass@1 | Delta pp | 95% CI | p-value |
+|---------|--------|----------|--------|---------|
+| Delta A (ORPO) | **90.9%** (40/44) | +6.8 | [−6.8, +20.4] | 0.1953 |
+| Delta B (prompt) | 86.4% (38/44) | +2.3 | [−13.6, +15.9] | 0.4357 |
+| Baseline (Wk 10) | 84.1% (37/44) | — | — | — |
 
-- Run the trained/prompted critic on the 44-task held-out split; measure Spearman ρ against pass@1 labels
-- Target: ρ ≥ 0.65 for the judge to be considered calibrated
-- Replace `observed_behavior: "unknown"` in `probe_cases.json` with live annotated outputs
-- Produce `results/act6_judge_eval.json` closing the loop between Week 10 evaluation and Week 11 alignment
-
-**Remaining deliverables:** DPO dataset JSONL, critic calibration curve, `report_week11.md`
+> n=44 is underpowered for p<0.05 at these effect sizes. Formal significance requires ~n=200.
+> Delta A is the Pareto winner on quality **and** cost ($0.000089/task vs $0.000229 for baseline).
 
 ---
 
-## Submission Checklist
+## Dataset URL
 
-- `audit_memo.md` — ≥ 8 probe IDs, ≥ 5 trace examples, ≤ 600 words
-- `schema.json` — machine-readable, 3 tasks inline
-- `scoring_evaluator.py` — executable, returns numeric score + breakdown
-- `methodology.md` — path declared, contamination protocol, partitioning
-- `inter_rater_agreement.md` — 30-task dual-label, Cohen's κ reported
-- `datasheet.md` — Gebru + Data Cards, all sections
-- `cost_log.csv` — timestamped, per-bucket
-- `contamination_check.json` — n-gram, embedding, time-shift, held_out verdict
-- `tenacious_bench_v0.1/` — 220 tasks, 3 splits, JSONL
--  `generation_scripts/` — 5 real Python scripts
-- `synthesis_memos/` — 2 one-page memos with paper disagreements
-- `pyproject.toml` — UV-ready
-- `.env.example` — no secrets committed
+[https://huggingface.co/datasets/eyorg/tenacious_bench_v0.1](https://huggingface.co/datasets/eyorg/tenacious_bench_v0.1)
+
+---
+
+## Model URL
+
+[https://huggingface.co/eyorg/tenacious-orpo-qwen25-7b](https://huggingface.co/eyorg/tenacious-orpo-qwen25-7b)
+
+---
+
+## Blog Post
+
+[public_artifacts/blog_post.md](public_artifacts/blog_post.md)
+
+---
+
+## Community Contribution
+
+[public_artifacts/community_issue.md](public_artifacts/community_issue.md)
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+## Attribution
+
+**Author:** Eyor Getachew  
+**Training method:** ORPO (Hong et al. 2024)  
+**Backbone:** Qwen/Qwen2.5-7B-Instruct
+
+**References:**
+- Rafailov et al. (2023). Direct Preference Optimization. NeurIPS 2023.
+- Hong et al. (2024). ORPO: Monolithic Preference Optimization without Reference Model.
+- Liu et al. (2024). LIMA: Less Is More for Alignment. NeurIPS 2024.
+- Gebru et al. (2018). Datasheets for Datasets.
