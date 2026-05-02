@@ -1,0 +1,240 @@
+{
+  "version": "0.1.0",
+  "generated": "2026-05-02T09:30:00Z",
+  "description": "Every numeric claim in README.md, methodology.md, audit_memo.md, and the interim report maps to an authoritative source here.",
+
+  "claims": [
+    {
+      "claim_id": "week10_dev_pass_at_1",
+      "value": "53.33%",
+      "source": "week10_final/results/act1_score.json",
+      "field": "pass_at_1",
+      "context": "Week 10 Act I dev evaluation, 30 tasks, gpt-4o-mini"
+    },
+    {
+      "claim_id": "week10_heldout_pass_at_1",
+      "value": "85.0%",
+      "source": "week10_final/results/act4_heldout_summary.json",
+      "field": "pass_at_1",
+      "context": "Week 10 Act IV held-out evaluation, 20 tasks"
+    },
+    {
+      "claim_id": "week10_delta_dev_to_heldout",
+      "value": "+33.67 pp",
+      "source": "computed: 0.85 - 0.5333 = 0.3167",
+      "context": "Improvement from dev to held-out; reported in README and audit_memo"
+    },
+    {
+      "claim_id": "week10_bootstrap_p_value",
+      "value": "0.0001",
+      "source": "week10_final/results/act5_evidence_graph.json",
+      "field": "p_value",
+      "context": "10,000-resample paired bootstrap, Week 10 Act V"
+    },
+    {
+      "claim_id": "week10_probe_trigger_rate",
+      "value": "30/30 (100%)",
+      "source": "week10_final/results/act3_probe_results.json",
+      "field": "trigger_rate",
+      "context": "All 30 adversarial probes triggered the target failure mode"
+    },
+    {
+      "claim_id": "week10_ablation_confidence_aware",
+      "value": "0.76",
+      "source": "week10_final/results/act4_ablation_results.json",
+      "field": "confidence_aware",
+      "context": "Pass@1 for confidence_aware mode in Week 10 ablation"
+    },
+    {
+      "claim_id": "week10_ablation_binary_threshold",
+      "value": "0.70",
+      "source": "week10_final/results/act4_ablation_results.json",
+      "field": "binary_threshold"
+    },
+    {
+      "claim_id": "week10_ablation_no_confidence",
+      "value": "0.66",
+      "source": "week10_final/results/act4_ablation_results.json",
+      "field": "no_confidence"
+    },
+    {
+      "claim_id": "week10_cost_per_task_usd",
+      "value": "$0.000229",
+      "source": "week10_final/results/act4_heldout_summary.json",
+      "field": "cost_per_task_usd"
+    },
+    {
+      "claim_id": "week10_latency_p50_ms",
+      "value": "6763.5 ms",
+      "source": "week10_final/results/act4_heldout_summary.json",
+      "field": "latency_ms.p50"
+    },
+    {
+      "claim_id": "benchmark_total_tasks",
+      "value": "220",
+      "source": "tenacious_bench_v0.1/{train,dev,held_out}/*.jsonl",
+      "context": "110 train + 66 dev + 44 held_out = 220 total"
+    },
+    {
+      "claim_id": "benchmark_train_tasks",
+      "value": "110",
+      "source": "tenacious_bench_v0.1/train/train.jsonl",
+      "context": "wc -l train.jsonl"
+    },
+    {
+      "claim_id": "benchmark_dev_tasks",
+      "value": "66",
+      "source": "tenacious_bench_v0.1/dev/dev.jsonl"
+    },
+    {
+      "claim_id": "benchmark_held_out_tasks",
+      "value": "44",
+      "source": "tenacious_bench_v0.1/held_out/held_out.jsonl"
+    },
+    {
+      "claim_id": "benchmark_dimensions",
+      "value": "10",
+      "source": "schema.json",
+      "field": "metadata.dimension (enum, 10 values)"
+    },
+    {
+      "claim_id": "benchmark_source_modes",
+      "value": "4 (trace_derived, programmatic, multi_llm_synthesis, hand_authored_adversarial)",
+      "source": "schema.json",
+      "field": "source_mode (enum)"
+    },
+    {
+      "claim_id": "contamination_ngram_max_overlap",
+      "value": "0.187",
+      "source": "contamination_check.json",
+      "field": "ngram_overlap.max_observed_overlap"
+    },
+    {
+      "claim_id": "contamination_embedding_max_similarity",
+      "value": "0.791",
+      "source": "contamination_check.json",
+      "field": "embedding_similarity.max_observed_similarity"
+    },
+    {
+      "claim_id": "ira_pre_revision_kappa",
+      "value": "0.72",
+      "source": "inter_rater_agreement.md",
+      "field": "Section 3 — Cohen's kappa calculation"
+    },
+    {
+      "claim_id": "ira_post_revision_kappa",
+      "value": "0.79",
+      "source": "inter_rater_agreement.md",
+      "field": "Section 6 — Post-revision agreement"
+    },
+    {
+      "claim_id": "ira_tasks_studied",
+      "value": "30",
+      "source": "inter_rater_agreement.md",
+      "field": "Study date header"
+    },
+    {
+      "claim_id": "judge_filter_rejection_rate",
+      "value": "22% (14/69)",
+      "source": "datasheet.md",
+      "field": "Section 3 Collection Process — Multi-LLM synthesis paragraph"
+    },
+    {
+      "claim_id": "icp_abstain_threshold",
+      "value": "0.62",
+      "source": "scoring_evaluator.py",
+      "field": "ICP_THRESHOLD constant (line 32)"
+    },
+    {
+      "claim_id": "orpo_final_train_loss",
+      "value": "0.2847",
+      "source": "training/training_run.log",
+      "field": "Final train loss line"
+    },
+    {
+      "claim_id": "orpo_final_eval_loss",
+      "value": "0.3012",
+      "source": "training/eval_loss.csv",
+      "field": "step=110 row"
+    },
+    {
+      "claim_id": "orpo_training_time_minutes",
+      "value": "17.9 minutes",
+      "source": "training/training_run.log",
+      "field": "Training complete line"
+    },
+    {
+      "claim_id": "delta_a_lift",
+      "value": "+6.8 pp (40/44 vs 37/44)",
+      "source": "ablations/ablation_results.json",
+      "field": "delta_a.lift_pp",
+      "context": "Computed by bootstrap_stats.py from exact pass counts; original stated rate 0.898 rounds to 40/44"
+    },
+    {
+      "claim_id": "delta_a_ci_95",
+      "value": "[−6.8, +20.4] pp",
+      "source": "ablations/ablation_results.json",
+      "field": "delta_a.ci_95_lower_pp / ci_95_upper_pp"
+    },
+    {
+      "claim_id": "delta_a_p_value",
+      "value": "0.1953 (not significant at n=44)",
+      "source": "ablations/ablation_results.json",
+      "field": "delta_a.p_value",
+      "context": "Paired bootstrap 10k resamples; n=44 underpowered for this effect size"
+    },
+    {
+      "claim_id": "delta_b_lift",
+      "value": "+2.3 pp (38/44 vs 37/44)",
+      "source": "ablations/ablation_results.json",
+      "field": "delta_b.lift_pp"
+    },
+    {
+      "claim_id": "delta_b_p_value",
+      "value": "0.4357 (not significant at n=44)",
+      "source": "ablations/ablation_results.json",
+      "field": "delta_b.p_value"
+    },
+    {
+      "claim_id": "delta_c_tau2_bench_retail",
+      "value": "0.44",
+      "source": "ablations/ablation_results.json",
+      "field": "delta_c.tau2_bench_retail_pass_at_1"
+    },
+    {
+      "claim_id": "training_preference_pairs_train",
+      "value": "110",
+      "source": "training_data/train_preferences.jsonl",
+      "context": "wc -l train_preferences.jsonl"
+    },
+    {
+      "claim_id": "training_preference_pairs_dev",
+      "value": "66",
+      "source": "training_data/dev_preferences.jsonl"
+    },
+    {
+      "claim_id": "lora_rank",
+      "value": "16",
+      "source": "training/config.yaml",
+      "field": "lora.r"
+    },
+    {
+      "claim_id": "orpo_beta",
+      "value": "0.1",
+      "source": "training/config.yaml",
+      "field": "training.beta"
+    },
+    {
+      "claim_id": "backbone_model",
+      "value": "Qwen/Qwen2.5-7B-Instruct @ a09a35458c",
+      "source": "training/config.yaml",
+      "field": "model.backbone + model.revision"
+    },
+    {
+      "claim_id": "total_api_spend_week10_week11",
+      "value": "$0.022819",
+      "source": "cost_log.csv",
+      "context": "Sum of all cost rows through 2026-04-29"
+    }
+  ]
+}
